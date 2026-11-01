@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DalliKlick</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="engine.js" defer></script>
+    <script src="effects.js" defer></script>
+    <script src="i18n.js" defer></script>
+    <script src="session.js" defer></script>
+    <script src="app.js" defer></script>
+</head>
+<body>
+<main class="app">
+    <header class="page-header">
+        <h1 class="brand">
+            <span class="logo"></span>
+            <span>Dalli<strong>Klick</strong></span>
+        </h1>
+        <label class="picker" for="theme">
+            <span data-i18n="theme.label">Theme</span>
+            <select id="theme">
+                <option value="light" data-i18n="theme.light">Light</option>
+                <option value="dark" data-i18n="theme.dark">Dark</option>
+            </select>
+        </label>
+        <label class="picker" for="language">
+            <span data-i18n="language.label">Language</span>
+            <select id="language">
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+            </select>
+        </label>
+    </header>
+
+    <div class="workspace">
+        <aside class="controls">
+            <section class="panel">
+                <h2><span class="step">01</span> <span data-i18n="image.heading">Image</span></h2>
+                <label
+                        class="upload-zone"
+                        id="drop-zone"
+                        for="file-input"
+                >
+                    <strong data-i18n="image.select">Choose an image</strong>
+                    <span data-i18n="image.drop">or drag and drop it here</span>
+                    <input
+                            id="file-input"
+                            type="file"
+                            accept="image/*"
+                    >
+                </label>
+                <p class="hint" data-i18n="image.privacy">Your image stays on your device.</p>
+            </section>
+
+            <section class="panel">
+                <h2 id="mode-heading"><span class="step">02</span> <span data-i18n="mode.heading">Game mode</span></h2>
+                <fieldset class="mode-switch" aria-labelledby="mode-heading">
+                    <label>
+                        <input
+                                type="radio"
+                                name="mode"
+                                value="grid"
+                                checked
+                        >
+                        <span data-i18n="mode.grid">Grid</span>
+                    </label>
+                    <label>
+                        <input
+                                type="radio"
+                                name="mode"
+                                value="effect"
+                        >
+                        <span data-i18n="mode.effect">Effect</span>
+                    </label>
+                </fieldset>
+                <p class="hint" id="mode-description">Tiles hide the image and are revealed one by one.</p>
+            </section>
+
+            <section class="panel">
+                <div id="grid-settings">
+                    <h2 id="grid-heading"><span class="step">03</span> <span data-i18n="grid.heading">Grid</span></h2>
+                    <div class="grid-size">
+                        <label for="rows">
+                            <span data-i18n="grid.rows">Rows</span>
+                            <select id="rows"></select>
+                        </label>
+                        <label for="columns">
+                            <span data-i18n="grid.columns">Columns</span>
+                            <select id="columns"></select>
+                        </label>
+                    </div>
+                    <p class="hint" data-i18n="grid.hint">Changing the grid hides the image again.</p>
+                    <fieldset class="mode-switch" aria-labelledby="grid-heading">
+                        <label>
+                            <input
+                                    type="radio"
+                                    name="grid-mode"
+                                    value="manual"
+                                    checked
+                            >
+                            <span
+                                    data-i18n="gridMode.manual">Manual</span></label>
+                        <label>
+                            <input
+                                    type="radio"
+                                    name="grid-mode"
+                                    value="random"
+                            >
+                            <span data-i18n="gridMode.random">Random</span>
+                        </label>
+                    </fieldset>
+                    <p class="hint" id="grid-mode-description">Click a tile to reveal it.</p>
+                </div>
+                <div id="effect-settings" hidden>
+                    <h2 id="effect-heading"><span class="step">03</span> <span data-i18n="effect.heading">Effect</span>
+                    </h2>
+                    <div class="effect-select">
+                        <label for="effect"></label><select id="effect" aria-labelledby="effect-heading">
+                        <option value="blur" data-i18n="effect.blur">Blur</option>
+                        <option value="distort" data-i18n="effect.distort">Distort</option>
+                        <option value="zoom" data-i18n="effect.zoom">Zoom</option>
+                        <option value="swirl" data-i18n="effect.swirl">Swirl</option>
+                    </select>
+                    </div>
+                    <label class="range-label" for="effect-steps">
+                        <span data-i18n="effect.steps">Steps</span>
+                        <output id="effect-steps-text" for="effect-steps">50</output>
+                    </label>
+                    <input id="effect-steps" type="range">
+                </div>
+                <div
+                        class="automatic-settings"
+                        id="automatic-settings"
+                        hidden
+                >
+                    <label class="range-label" for="interval">
+                        <span id="interval-name">One tile every</span>
+                        <output id="interval-text" for="interval">1 second</output>
+                    </label>
+                    <input
+                            id="interval"
+                            type="range"
+                            min="1"
+                    >
+                    <button
+                            class="button primary"
+                            id="play-button"
+                            disabled
+                    >Start
+                    </button>
+                </div>
+            </section>
+        </aside>
+
+        <section class="game-panel">
+            <div class="stage" id="stage">
+                <div class="empty-state" id="empty-state">
+                    <div class="logo"></div>
+                    <h2 data-i18n="board.emptyHint">Choose an image on the left</h2>
+                </div>
+                <div
+                        class="board-area"
+                        id="board-area"
+                        hidden
+                >
+                    <div class="board-frame" id="board-frame">
+                        <div class="column-labels" id="column-labels"></div>
+                        <div class="row-labels" id="row-labels"></div>
+                        <div class="board" id="board">
+                            <img
+                                    id="image"
+                                    draggable="false"
+                                    alt="Your uploaded image"
+                            >
+                            <canvas id="swirl-canvas"></canvas>
+                            <div class="tiles" id="tiles"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="game-actions">
+                <p
+                        class="message"
+                        id="message"
+                        role="status"
+                        aria-live="polite"
+                        aria-atomic="true"
+                ></p>
+                <button
+                        class="button"
+                        id="reset-button"
+                        data-i18n="button.reset"
+                        disabled
+                >Reset
+                </button>
+                <button
+                        class="button"
+                        id="reveal-button"
+                        data-i18n="button.reveal"
+                        disabled
+                >Reveal
+                </button>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- Filter for the "distort" effect: noise moves the pixels; app.js sets the strength (scale). -->
+<svg
+        class="filters"
+        width="0"
+        height="0"
+>
+    <filter id="distort">
+        <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.04"
+                numOctaves="3"
+                result="noise"
+        />
+        <feDisplacementMap
+                id="distort-map"
+                in="SourceGraphic"
+                in2="noise"
+                scale="0"
+                xChannelSelector="R"
+                yChannelSelector="G"
+        />
+    </filter>
+</svg>
+</body>
+</html>
