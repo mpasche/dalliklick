@@ -171,8 +171,7 @@ const GameEngine = (() => {
      */
     function changeGrid(game, rows, columns) {
         if (!Number.isInteger(rows) || rows < 1 || rows > MAX_ROWS ||
-            !Number.isInteger(columns) ||
-            columns < 1 || columns > MAX_COLUMNS) {
+            !Number.isInteger(columns) || columns < 1 || columns > MAX_COLUMNS) {
             return {...game, message: 'error.grid', error: true};
         }
         if (rows === game.rows && columns === game.columns && !game.error) {
