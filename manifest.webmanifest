@@ -1,0 +1,18 @@
+{
+    "id": "./",
+    "name": "DalliKlick",
+    "short_name": "DalliKlick",
+    "description": "Reveal your own images",
+    "lang": "en",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "icons": [
+        {
+            "src": "icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ]
+}
