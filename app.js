@@ -8,7 +8,7 @@
         'grid-settings', 'rows', 'columns', 'grid-mode-description',
         'effect-settings', 'effect', 'effect-steps', 'effect-steps-text',
         'automatic-settings', 'interval-name', 'interval', 'interval-text', 'play-button',
-        'empty-state', 'board-area', 'board-frame', 'column-labels', 'row-labels', 'board', 'image', 'swirl-canvas', 'tiles', 'distort-map',
+        'empty-board', 'board-area', 'board-frame', 'column-labels', 'row-labels', 'board', 'image', 'swirl-canvas', 'tiles', 'distort-map',
         'message', 'reset-button', 'reveal-button',
     ].map((id) => [id, document.getElementById(id)]));
 
@@ -114,12 +114,16 @@
         }
         for (let row = 0; row < game.rows; row++) {
             for (let column = 0; column < game.columns; column++) {
+                const label = document.createElement('span');
+                label.className = 'tile-label';
+                label.textContent = GameEngine.tileLabel(row, column);
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'tile';
                 button.dataset.row = String(row);
                 button.dataset.column = String(column);
-                button.textContent = GameEngine.tileLabel(row, column);
+                button.setAttribute('aria-label', label.textContent);
+                button.append(label);
                 elements['tiles'].append(button);
             }
         }
@@ -209,7 +213,7 @@
         const inProgress = GameEngine.gameState(currentGame) === GameEngine.GameState.IN_PROGRESS;
 
         elements['board-frame'].dataset.mode = currentGame.mode;
-        elements['empty-state'].hidden = currentGame.image !== null;
+        elements['empty-board'].hidden = currentGame.image !== null;
         elements['board-area'].hidden = currentGame.image === null;
         elements['row-labels'].hidden = effectMode;
         elements['column-labels'].hidden = effectMode;

@@ -18,20 +18,22 @@
             <span class="logo"></span>
             <span>Dalli<strong>Klick</strong></span>
         </h1>
-        <label class="picker" for="theme">
-            <span data-i18n="theme.label">Theme</span>
-            <select id="theme">
-                <option value="light" data-i18n="theme.light">Light</option>
-                <option value="dark" data-i18n="theme.dark">Dark</option>
-            </select>
-        </label>
-        <label class="picker" for="language">
-            <span data-i18n="language.label">Language</span>
-            <select id="language">
-                <option value="en">English</option>
-                <option value="de">Deutsch</option>
-            </select>
-        </label>
+        <div class="header-settings">
+            <label class="picker" for="theme">
+                <span data-i18n="theme.label">Theme</span>
+                <select id="theme">
+                    <option value="light" data-i18n="theme.light">Light</option>
+                    <option value="dark" data-i18n="theme.dark">Dark</option>
+                </select>
+            </label>
+            <label class="picker" for="language">
+                <span data-i18n="language.label">Language</span>
+                <select id="language">
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                </select>
+            </label>
+        </div>
     </header>
 
     <div class="workspace">
@@ -155,28 +157,26 @@
         </aside>
 
         <section class="game-panel">
-            <div class="stage" id="stage">
-                <div class="empty-state" id="empty-state">
-                    <div class="logo"></div>
-                    <h2 data-i18n="board.emptyHint">Choose an image on the left</h2>
-                </div>
-                <div
-                        class="board-area"
-                        id="board-area"
-                        hidden
-                >
-                    <div class="board-frame" id="board-frame">
-                        <div class="column-labels" id="column-labels"></div>
-                        <div class="row-labels" id="row-labels"></div>
-                        <div class="board" id="board">
-                            <img
-                                    id="image"
-                                    draggable="false"
-                                    alt="Your uploaded image"
-                            >
-                            <canvas id="swirl-canvas"></canvas>
-                            <div class="tiles" id="tiles"></div>
-                        </div>
+            <div class="empty-board" id="empty-board">
+                <div class="logo"></div>
+                <h2 data-i18n="image.select">Choose an image</h2>
+            </div>
+            <div
+                    class="board-area"
+                    id="board-area"
+                    hidden
+            >
+                <div class="board-frame" id="board-frame">
+                    <div class="column-labels" id="column-labels"></div>
+                    <div class="row-labels" id="row-labels"></div>
+                    <div class="board" id="board">
+                        <img
+                                id="image"
+                                draggable="false"
+                                alt="Your uploaded image"
+                        >
+                        <canvas id="swirl-canvas"></canvas>
+                        <div class="tiles" id="tiles"></div>
                     </div>
                 </div>
             </div>
