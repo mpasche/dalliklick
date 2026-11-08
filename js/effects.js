@@ -5,9 +5,12 @@ const Effects = (() => {
     const MAX_DISTORT_SCALE = 1000;
     const MAX_IMAGE_DIMENSION = 1000;
 
-    // Twists the image around its center like a snail shell.
-    // strength 1 = full swirl, 0 = original image.
-    // Returns new pixels, the source stays unchanged.
+    /**
+     * Twists the image around its center.
+     * @param {ImageData} source - Original pixels to sample without modifying them.
+     * @param {number} strength - 1 for full swirl, 0 for the original image.
+     * @returns {ImageData} New distorted pixels with the source dimensions.
+     */
     function swirl(source, strength) {
         const {width, height, data} = source;
         const result = new ImageData(width, height);
@@ -39,6 +42,12 @@ const Effects = (() => {
         return result;
     }
 
+    /**
+     * @param {HTMLImageElement} image - Decoded image with valid natural dimensions.
+     * @returns {ImageData} Pixels scaled down to MAX_IMAGE_DIMENSION on the longest side,
+     * preserving aspect ratio and never upscaling.
+     * @throws {Error} If canvas creation, drawing, or pixel access fails.
+     */
     function readPixels(image) {
         // scaled down, so the swirl is calculated fast
         const scale = Math.min(1, MAX_IMAGE_DIMENSION /
@@ -54,6 +63,14 @@ const Effects = (() => {
         return context.getImageData(0, 0, canvas.width, canvas.height);
     }
 
+    /**
+     * Resizes the target canvas to the cached pixels and draws the requested swirl.
+     * @param {HTMLCanvasElement} canvas - Destination for the effect.
+     * @param {ImageData | null} pixels - Original cached pixels; null is rejected.
+     * @param {number} strength - 1 for full swirl, 0 for the original image.
+     * @returns {void}
+     * @throws {Error} If pixels are missing or a 2D canvas context cannot be created.
+     */
     function drawSwirl(canvas, pixels, strength) {
         if (pixels === null) {
             throw new Error('No image pixels available for the swirl.');

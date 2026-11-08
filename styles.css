@@ -13,6 +13,7 @@
     --accent: light-dark(#7cb342, #9ccc65);
     --on-accent: #000000;
     --error: light-dark(#b00020, #cf6679);
+    --on-error: light-dark(#ffffff, #000000);
 }
 
 :root[data-theme="light"] {
@@ -67,8 +68,26 @@ h2 {
     font-size: 1rem;
 }
 
+.panel {
+    padding: 1rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: .75rem;
+}
+
+.step {
+    margin-right: .5rem;
+    color: var(--accent);
+}
+
+.hint {
+    margin: .75rem 0 0;
+    font-size: .75rem;
+    color: var(--muted);
+}
+
 select {
-    padding: .5rem .5rem;
+    padding: .5rem;
     border: 1px solid var(--border);
     border-radius: .5rem;
     background: var(--field);
@@ -102,7 +121,7 @@ select:hover {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding: 1.25rem;
+    padding: 1rem;
 }
 
 .workspace {
@@ -110,14 +129,19 @@ select:hover {
     min-height: 0;
     display: grid;
     grid-template-columns: 20rem 1fr;
-    gap: 1.25rem;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 1rem;
 }
 
 /* --- Header --- */
 .page-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--background);
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 1rem;
     flex-wrap: wrap;
     padding: .5rem 1rem;
 }
@@ -134,34 +158,18 @@ select:hover {
     color: var(--accent);
 }
 
-/* Logo: 2x2 grid */
 .logo {
-    position: relative;
     display: block;
+    flex-shrink: 0;
     width: 1.75rem;
     height: 1.75rem;
-    background: linear-gradient(var(--accent) 0 0) top left,
-    linear-gradient(var(--accent) 0 0) bottom left,
-    linear-gradient(var(--accent) 0 0) bottom right;
-    background-size: .75rem .75rem;
-    background-repeat: no-repeat;
-    rotate: -8deg;
-}
-
-.logo::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: .75rem;
-    height: .75rem;
-    border: 2px solid var(--accent);
-    box-sizing: border-box;
+    background: var(--accent);
+    mask: url("icons/icon.svg") center / 175% no-repeat;
 }
 
 .header-settings {
     display: flex;
-    gap: 1.25rem;
+    gap: 1rem;
     margin-left: auto;
 }
 
@@ -174,6 +182,7 @@ select:hover {
 
 /* --- Settings on the left --- */
 .controls {
+    grid-area: 1 / 1;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -181,30 +190,12 @@ select:hover {
     overflow-y: auto;
 }
 
-.panel {
-    padding: 1rem;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: .75rem;
-}
-
-.step {
-    margin-right: .5rem;
-    color: var(--accent);
-}
-
-.hint {
-    margin: .75rem 0 0;
-    font-size: .75rem;
-    color: var(--muted);
-}
-
 .upload-zone {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: .25rem;
-    padding: 1.25rem .5rem;
+    padding: 1rem .5rem;
     border: 1px dashed var(--muted);
     border-radius: 1.25rem;
     color: var(--muted);
@@ -273,11 +264,6 @@ select:hover {
     margin-top: .5rem;
 }
 
-.effect-select select {
-    display: block;
-    width: 100%;
-}
-
 #grid-settings .mode-switch {
     margin-top: 1rem;
 }
@@ -285,6 +271,15 @@ select:hover {
 .effect-select {
     display: block;
     margin-bottom: .75rem;
+}
+
+.effect-select select {
+    display: block;
+    width: 100%;
+}
+
+.automatic-settings {
+    margin-top: 1rem;
 }
 
 .range-label {
@@ -299,16 +294,10 @@ input[type="range"] {
     accent-color: var(--accent);
 }
 
-.automatic-settings {
-    margin-top: 1rem;
-}
-
-#play-button {
-    margin-top: 1rem;
-}
-
 /* --- Game on the right --- */
 .game-panel {
+    position: relative;
+    grid-area: 1 / 2 / 3 / 3;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -334,19 +323,13 @@ input[type="range"] {
 }
 
 .empty-board .logo {
-    width: 3.5rem;
-    height: 3.5rem;
-    background-size: 1.5rem 1.5rem;
+    width: 5rem;
+    height: 5rem;
     margin: 0 auto 1.5rem;
 }
 
-.empty-board .logo::after {
-    width: 1.5rem;
-    height: 1.5rem;
-    border-width: 4px;
-}
-
 .empty-board h2 {
+    margin-bottom: 0;
     font-size: 1.5rem;
 }
 
@@ -425,10 +408,6 @@ input[type="range"] {
     visibility: hidden;
 }
 
-.filters {
-    position: absolute;
-}
-
 .tiles {
     display: grid;
     grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
@@ -471,22 +450,80 @@ input[type="range"] {
     visibility: hidden;
 }
 
-.game-actions {
-    display: flex;
+.image-navigation {
+    display: grid;
+    grid-template-columns: minmax(0, auto) auto minmax(0, auto);
+    justify-content: center;
     align-items: center;
     gap: .5rem;
     padding: .75rem 1rem;
     border-top: 1px solid var(--border);
-    flex-wrap: wrap;
+}
+
+.image-navigation .button {
+    min-width: 2.75rem;
+    padding: .5rem;
+}
+
+/* --- Game controls --- */
+.play-controls {
+    grid-area: 2 / 1;
+}
+
+.play-icon {
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+    vertical-align: -.125em;
+}
+
+#play-button {
+    margin-bottom: .5rem;
+}
+
+.round-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+}
+
+/* --- Notifications --- */
+.notification {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 10;
+    max-width: min(24rem, calc(100% - 3rem));
+    padding: 1rem;
+    border-radius: .75rem;
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 .25rem 1rem rgb(0 0 0 / 20%);
+    overflow-wrap: anywhere;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    translate: 0 -.5rem;
+    transition: opacity .2s, translate .2s, visibility .2s;
+}
+
+.notification.visible {
+    opacity: 1;
+    visibility: visible;
+    translate: 0 0;
+}
+
+.notification.error {
+    background: var(--error);
+    color: var(--on-error);
 }
 
 .message {
-    margin: 0 auto 0 0;
-    color: var(--accent);
+    margin: 0;
 }
 
-.message.error {
-    color: var(--error);
+.filters {
+    position: absolute;
 }
 
 @media (max-width: 64em) {
@@ -496,13 +533,11 @@ input[type="range"] {
 
     .workspace {
         grid-template-columns: 1fr;
-    }
-
-    .controls {
-        overflow-y: visible;
+        grid-template-rows: auto auto auto;
     }
 
     .page-header {
+        position: static;
         flex-direction: column;
         padding: .5rem 0;
     }
@@ -514,7 +549,6 @@ input[type="range"] {
     .header-settings {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1rem;
         width: 100%;
         max-width: 24rem;
         margin: 0;
@@ -526,9 +560,40 @@ input[type="range"] {
         min-width: 0;
     }
 
-    .empty-board,
-    .board-area {
+    .controls {
+        overflow-y: visible;
+    }
+
+    .game-panel {
+        grid-area: 2 / 1;
+    }
+
+    .empty-board {
         flex: none;
         height: 75vh;
+    }
+
+    .board-area {
+        flex: none;
+        container-type: inline-size;
+    }
+
+    .board-frame {
+        width: min(100cqw, (75vh - 3.75rem) * var(--aspect-ratio) + 1.75rem);
+    }
+
+    .board-frame[data-mode="effect"] {
+        width: min(100cqw, (75vh - 2rem) * var(--aspect-ratio));
+    }
+
+    .play-controls {
+        grid-area: 3 / 1;
+    }
+
+    .notification {
+        position: fixed;
+        top: calc(1.5rem + env(safe-area-inset-top));
+        right: calc(1.5rem + env(safe-area-inset-right));
+        max-width: min(24rem, calc(100vw - 3rem - env(safe-area-inset-left) - env(safe-area-inset-right)));
     }
 }

@@ -42,21 +42,22 @@
     <div class="workspace">
         <aside class="controls">
             <section class="panel">
-                <h2><span class="step">01</span> <span data-i18n="image.heading">Image</span></h2>
+                <h2><span class="step">01</span> <span data-i18n="image.heading">Images</span></h2>
                 <label
                         class="upload-zone"
                         id="drop-zone"
                         for="file-input"
                 >
-                    <strong data-i18n="image.select">Choose an image</strong>
-                    <span data-i18n="image.drop">or drag and drop it here</span>
+                    <strong data-i18n="image.select">Choose images</strong>
+                    <span data-i18n="image.drop">or drag and drop them here</span>
                     <input
                             id="file-input"
                             type="file"
                             accept="image/*"
+                            multiple
                     >
                 </label>
-                <p class="hint" data-i18n="image.privacy">Your image stays on your device.</p>
+                <p class="hint" data-i18n="image.privacy">Your images stay on your device.</p>
             </section>
 
             <section class="panel">
@@ -149,20 +150,18 @@
                             type="range"
                             min="1"
                     >
-                    <button
-                            class="button primary"
-                            id="play-button"
-                            disabled
-                    >Start
-                    </button>
                 </div>
             </section>
         </aside>
 
         <section class="game-panel">
+            <div class="notification" id="notification" role="status" aria-live="polite" aria-atomic="true">
+                <p class="message" id="message"></p>
+            </div>
             <div class="empty-board" id="empty-board">
                 <div class="logo"></div>
-                <h2 data-i18n="image.select">Choose an image</h2>
+                <h2 data-i18n="image.select">Choose images</h2>
+                <p class="hint" data-i18n="image.privacy">Your images stay on your device.</p>
             </div>
             <div
                     class="board-area"
@@ -183,28 +182,23 @@
                     </div>
                 </div>
             </div>
-            <div class="game-actions">
-                <p
-                        class="message"
-                        id="message"
-                        role="status"
-                        aria-live="polite"
-                        aria-atomic="true"
-                ></p>
-                <button
-                        class="button"
-                        id="reset-button"
-                        data-i18n="button.reset"
-                        disabled
-                >Reset
-                </button>
-                <button
-                        class="button"
-                        id="reveal-button"
-                        data-i18n="button.reveal"
-                        disabled
-                >Reveal
-                </button>
+            <nav class="image-navigation" id="image-navigation" aria-label="Image navigation" hidden>
+                <button class="button" id="previous-button" data-i18n="button.previous" disabled>Previous</button>
+                <span id="image-position"></span>
+                <button class="button" id="next-button" data-i18n="button.next" disabled>Next</button>
+            </nav>
+        </section>
+        <section class="panel play-controls" aria-labelledby="play-heading">
+            <h2 id="play-heading">
+                <svg class="step play-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 3v18l15-9z"/>
+                </svg>
+                <span data-i18n="play.heading">Game controls</span>
+            </h2>
+            <button class="button primary" id="play-button" disabled hidden>Start</button>
+            <div class="round-actions">
+                <button class="button" id="reveal-button" data-i18n="button.reveal" disabled>Reveal</button>
+                <button class="button" id="reset-button" data-i18n="button.reset" disabled>Reset</button>
             </div>
         </section>
     </div>

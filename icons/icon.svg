@@ -1,8 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-    <g fill="#7cb342">
-        <rect x="128" y="128" width="112" height="112"/>
-        <rect x="128" y="272" width="112" height="112"/>
-        <rect x="272" y="272" width="112" height="112"/>
+    <g transform="rotate(-8 256 256)">
+        <g fill="#7cb342">
+            <rect x="128" y="128" width="112" height="112"/>
+            <rect x="128" y="272" width="112" height="112"/>
+            <rect x="272" y="272" width="112" height="112"/>
+        </g>
+        <rect x="278" y="134" width="100" height="100" fill="none" stroke="#7cb342" stroke-width="12"/>
     </g>
-    <rect x="278" y="134" width="100" height="100" fill="none" stroke="#7cb342" stroke-width="12"/>
 </svg>
