@@ -1,7 +1,7 @@
 'use strict';
 
 // Increment whenever a file in FILES_TO_CACHE changes.
-const CACHE_VERSION = 2;
+const CACHE_VERSION = 3;
 const CACHE_PREFIX = `dalliklick:${self.registration.scope}:`;
 const CACHE_NAME = `${CACHE_PREFIX}v${CACHE_VERSION}`;
 const FILES_TO_CACHE = [
