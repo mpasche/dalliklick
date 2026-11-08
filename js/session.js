@@ -146,7 +146,7 @@ const Session = (() => {
             ...session,
             game: GameEngine.pauseGame(session.game),
             upload: UploadState.LOADING,
-            message: 'message.preparing',
+            message: 'message.loading',
             error: false,
         };
     }

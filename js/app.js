@@ -357,11 +357,12 @@
 
     /**
      * @param {string} url - Object URL of the image to decode.
-     * @returns {Promise<{imageData: GameImage, pixels: ImageData}>} Decoded metadata and
-     * scaled pixels for effect rendering. Rejects on decode, dimension, or pixel-read failure;
+     * @param {boolean} [includePixels=true] - Whether the image needs an effect pixel cache now.
+     * @returns {Promise<{imageData: GameImage, pixels: ImageData | null}>} Decoded metadata and
+     * optional scaled pixels. Rejects on decode, dimension, or requested pixel-read failure;
      * leaves ownership of the object URL with the caller.
      */
-    async function prepareImage(url) {
+    async function prepareImage(url, includePixels = true) {
         const image = new Image();
         image.src = url;
         try {
@@ -370,14 +371,14 @@
             if (!GameEngine.isValidImage(imageData)) {
                 throw new Error('Invalid image dimensions.');
             }
-            return {imageData, pixels: Effects.readPixels(image)};
+            return {imageData, pixels: includePixels ? Effects.readPixels(image) : null};
         } finally {
             image.removeAttribute('src');
         }
     }
 
     /**
-     * Processes files sequentially, committing the images and first pixel cache together.
+     * Processes files sequentially. Only the first image needs pixels immediately;
      * On failure, frees new URLs and retains the old images/cache; on success, frees old URLs.
      * @param {File[]} files - Selected files in their playback order.
      * @returns {Promise<void>} Resolves after processing or a reported import failure;
@@ -404,7 +405,7 @@
             try {
                 const url = URL.createObjectURL(file);
                 urls.push(url);
-                const prepared = await prepareImage(url);
+                const prepared = await prepareImage(url, index === 0);
                 images.push(prepared.imageData);
                 if (index === 0) {
                     firstPixels = prepared.pixels;
