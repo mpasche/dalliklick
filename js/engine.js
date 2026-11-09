@@ -6,7 +6,7 @@
 /** @typedef {"no-image" | "in-progress" | "completed"} GameStateValue */
 
 /**
- * Round state.
+ * Current game state.
  * @typedef {Object} Game
  * @property {GameImage | null} image
  * @property {number} rows
@@ -48,7 +48,7 @@ const GameEngine = (() => {
         return Array.from({length: rows}, () => Array(columns).fill(value));
     }
 
-    /** @returns {Game} Paused round with default settings. */
+    /** @returns {Game} New game with default settings. */
     function createGame() {
         return {
             image: null,
@@ -94,18 +94,18 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Round containing the tile visibility grid.
+     * @param {Game} game
      * @param {number} row - Row index.
      * @param {number} column - Column index.
-     * @returns {boolean} Whether the tile is hidden; false for coordinates outside the grid.
+     * @returns {boolean} Whether the tile is hidden; false if the coordinates are outside the grid.
      */
     function isHidden(game, row, column) {
         return game.hidden[row]?.[column] === true;
     }
 
     /**
-     * @param {Game} game - Round whose selected mode and reveal progress are checked.
-     * @returns {boolean} Whether the selected mode has no reveal steps left.
+     * @param {Game} game
+     * @returns {boolean} Whether the game is fully revealed in its current mode.
      */
     function isComplete(game) {
         if (game.mode === GameMode.EFFECT) {
@@ -115,8 +115,8 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Round whose image and reveal progress determine its state.
-     * @returns {GameStateValue} State derived from the image and reveal progress.
+     * @param {Game} game
+     * @returns {GameStateValue} Game state based on its image and reveal progress.
      */
     function gameState(game) {
         if (game.image === null) {
@@ -129,32 +129,32 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Round whose mode determines automatic reveal behavior.
-     * @returns {boolean} Whether the selected mode uses automatic reveal steps.
+     * @param {Game} game
+     * @returns {boolean} Whether its mode reveals the image automatically.
      */
     function isAutomatic(game) {
         return game.mode === GameMode.EFFECT || game.gridMode === GridMode.RANDOM;
     }
 
     /**
-     * @param {Game} game - Round checked for a loaded, unfinished image.
-     * @returns {boolean} Whether an image is loaded and not yet fully revealed.
+     * @param {Game} game
+     * @returns {boolean} Whether an image is loaded and not fully revealed.
      */
     function isInProgress(game) {
         return gameState(game) === GameState.IN_PROGRESS;
     }
 
     /**
-     * @param {Game} game - Round supplying mode, completion, and playback status.
-     * @returns {boolean} Whether automatic playback can advance the round.
+     * @param {Game} game
+     * @returns {boolean} Whether automatic reveal is running.
      */
     function isAutoRunning(game) {
         return isAutomatic(game) && isInProgress(game) && !game.paused;
     }
 
     /**
-     * @param {Game} game - Round supplying the selected mode and remaining effect steps.
-     * @returns {number} Remaining effect steps divided by MAX_EFFECT_STEPS.
+     * @param {Game} game
+     * @returns {number} Remaining effect strength from 0 to 1.
      */
     function effectStrength(game) {
         if (game.mode !== GameMode.EFFECT) {
@@ -164,8 +164,8 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Round whose grid is searched for hidden tiles.
-     * @returns {{row: number, column: number}[]} Hidden tiles.
+     * @param {Game} game
+     * @returns {{row: number, column: number}[]} Coordinates of hidden tiles.
      */
     function hiddenTiles(game) {
         const hidden = [];
@@ -180,8 +180,8 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {GameImage} image - Candidate metadata to validate.
-     * @returns {boolean} Whether metadata has a nonempty URL and finite, positive dimensions.
+     * @param {GameImage} image - Image metadata to validate.
+     * @returns {boolean} Whether the URL is nonempty and both dimensions are finite and positive.
      */
     function isValidImage(image) {
         return Boolean(image && typeof image.url === 'string' && image.url &&
@@ -190,10 +190,9 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Current round.
-     * @param {GameImage} image - Image for the new round.
-     * @returns {Game} Fully hidden, paused round retaining settings,
-     * or the previous round with an error message for invalid metadata.
+     * @param {Game} game
+     * @param {GameImage} image - Image to load.
+     * @returns {Game} Game reset for the image, or the unchanged game with an error if invalid.
      */
     function loadImage(game, image) {
         if (!isValidImage(image)) {
@@ -211,10 +210,9 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Current round.
+     * @param {Game} game
      * @param {Game["mode"]} mode - Requested grid or effect mode.
-     * @returns {Game} Paused round in the selected mode, preserving both reveal states.
-     * Unchanged if already selected without an error; invalid modes set an error message.
+     * @returns {Game} Game in the selected mode, paused; invalid modes set an error.
      */
     function changeMode(game, mode) {
         if (!Object.values(GameMode).includes(mode)) {
@@ -228,12 +226,10 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Current round.
+     * @param {Game} game
      * @param {number} rows - Integer from 1 to MAX_ROWS.
      * @param {number} columns - Integer from 1 to MAX_COLUMNS.
-     * @returns {Game} Reset, paused round with the new grid.
-     * Unchanged for the current valid size;
-     * invalid dimensions preserve the round and set an error message.
+     * @returns {Game} Game reset with the new grid; invalid dimensions set an error.
      */
     function changeGrid(game, rows, columns) {
         if (!Number.isInteger(rows) || rows < 1 || rows > MAX_ROWS ||
@@ -247,11 +243,9 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Current round.
+     * @param {Game} game
      * @param {Game["gridMode"]} gridMode - Requested manual or random tile reveal mode.
-     * @returns {Game} Paused round retaining reveal progress.
-     * Unchanged for the current valid selection;
-     * invalid grid modes preserve the round and set an error message.
+     * @returns {Game} Game with the selected grid mode, paused; invalid modes set an error.
      */
     function changeGridMode(game, gridMode) {
         if (!Object.values(GridMode).includes(gridMode)) {
@@ -264,10 +258,9 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Current round.
+     * @param {Game} game
      * @param {Game["effect"]} effect - Requested image distortion effect.
-     * @returns {Game} Paused round with the selected effect.
-     * Unchanged for the current valid selection; invalid effects set an error message.
+     * @returns {Game} Game with the selected effect, paused; invalid effects set an error.
      */
     function changeEffect(game, effect) {
         if (!Object.values(Effect).includes(effect)) {
@@ -280,10 +273,10 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Current round.
+     * @param {Game} game
      * @param {number} effectSteps - Integer from MIN_EFFECT_STEPS to MAX_EFFECT_STEPS.
-     * @returns {Game} Round with effect progress reset and playback paused.
-     * Unchanged for the current valid count; invalid counts set an error message.
+     * @returns {Game} Game with effect progress reset and automatic reveal paused;
+     * invalid counts set an error.
      */
     function changeEffectSteps(game, effectSteps) {
         if (!Number.isInteger(effectSteps) ||
@@ -300,10 +293,9 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Current round.
+     * @param {Game} game
      * @param {number} intervalSeconds - Integer from 1 to MAX_INTERVAL.
-     * @returns {Game} Round with the new interval, preserving progress and playback.
-     * Unchanged for the current valid interval; invalid intervals set an error message.
+     * @returns {Game} Game with the new interval; invalid intervals set an error.
      */
     function changeInterval(game, intervalSeconds) {
         if (!Number.isInteger(intervalSeconds) ||
@@ -317,8 +309,8 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Current round.
-     * @returns {Game} Round with playback toggled; unchanged unless automatic and in progress.
+     * @param {Game} game
+     * @returns {Game} Game with automatic reveal toggled; unchanged if it cannot run.
      */
     function togglePause(game) {
         if (!isAutomatic(game) || !isInProgress(game)) {
@@ -328,19 +320,18 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Round whose playback must stop during image loading.
-     * @returns {Game} Paused round retaining progress and messages; unchanged if already paused.
+     * @param {Game} game
+     * @returns {Game} Paused game; unchanged if already paused.
      */
     function pauseGame(game) {
         return game.paused ? game : {...game, paused: true};
     }
 
     /**
-     * @param {Game} game - Current round.
+     * @param {Game} game
      * @param {number} row - Row index.
      * @param {number} column - Column index.
-     * @returns {Game} Round with one tile revealed and its completion message updated;
-     * unchanged if the tile cannot be revealed or the round is not in progress.
+     * @returns {Game} Game with the tile revealed; unchanged if it cannot be revealed.
      */
     function revealTile(game, row, column) {
         if (!isInProgress(game) || !isHidden(game, row, column)) {
@@ -354,11 +345,10 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Current round.
+     * @param {Game} game
      * @param {number} row - Row index.
      * @param {number} column - Column index.
-     * @returns {Game} Round with the requested tile revealed in manual mode;
-     * unchanged in automatic mode or if the tile cannot be revealed.
+     * @returns {Game} Game with the tile revealed; unchanged in automatic mode or if unavailable.
      */
     function revealManually(game, row, column) {
         if (isAutomatic(game)) {
@@ -368,9 +358,8 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Current round.
-     * @returns {Game} Round advanced by one effect step or random tile;
-     * unchanged unless automatic playback is running on an unfinished image.
+     * @param {Game} game
+     * @returns {Game} Game advanced by one automatic reveal step; unchanged if it cannot advance.
      */
     function revealNext(game) {
         if (!isAutomatic(game) || game.paused || !isInProgress(game)) {
@@ -388,8 +377,8 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Current round.
-     * @returns {Game} Fully hidden, paused round retaining its image and settings.
+     * @param {Game} game
+     * @returns {Game} Game reset to a hidden image and paused.
      */
     function resetGame(game) {
         return {
@@ -403,9 +392,8 @@ const GameEngine = (() => {
     }
 
     /**
-     * @param {Game} game - Current round.
-     * @returns {Game} Round with both reveal states completed; unchanged without an image.
-     * The paused flag is preserved, but completed rounds no longer run automatically.
+     * @param {Game} game
+     * @returns {Game} Fully revealed game; unchanged if no image is loaded.
      */
     function revealAll(game) {
         if (gameState(game) === GameState.NO_IMAGE) {

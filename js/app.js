@@ -33,8 +33,8 @@
     let pixelCache = null;
 
     /**
-     * Applies a session change, then renders and synchronizes playback only if the state changed.
-     * @param {(session: SessionState) => SessionState} transform - Session state transformation.
+     * Applies a session update and refreshes the UI only when it changes.
+     * @param {(session: SessionState) => SessionState} transform - Session state update.
      * @returns {void}
      */
     function updateSession(transform) {
@@ -48,8 +48,8 @@
     }
 
     /**
-     * Applies a round change through the session's loading guard.
-     * @param {(game: Game) => Game} transform - Round state transformation.
+     * Applies a game update unless images are loading.
+     * @param {(game: Game) => Game} transform - Game state update.
      * @returns {void}
      */
     function updateGame(transform) {
@@ -57,9 +57,9 @@
     }
 
     /**
-     * Starts, stops, or replaces the interval when playback eligibility or speed changes.
-     * @param {Game} currentGame - Round after the update.
-     * @param {Game} previousGame - Round before the update.
+     * Updates the automatic reveal timer when its state or interval changes.
+     * @param {Game} currentGame - Game after the update.
+     * @param {Game} previousGame - Game before the update.
      * @returns {void}
      */
     function syncTimer(currentGame, previousGame) {
@@ -96,7 +96,7 @@
 
     /**
      * Updates static UI text, document language, and accessible image/navigation labels.
-     * @param {SessionState["language"]} language - Language to apply to the document and UI labels.
+     * @param {SessionState["language"]} language - Language for the document and UI labels.
      * @returns {void}
      */
     function renderLanguage(language) {
@@ -109,8 +109,8 @@
     }
 
     /**
-     * Rebuilds tile elements, coordinates, image source, and sizing; clears tiles without an image.
-     * @param {Game} game - Round supplying image metadata and grid dimensions.
+     * Builds the board for the current image and grid.
+     * @param {Game} game
      * @returns {void}
      */
     function buildBoard(game) {
@@ -155,7 +155,7 @@
     }
 
     /**
-     * @param {Game} game - Round supplying the selected mode and effect.
+     * @param {Game} game
      * @returns {boolean} Whether effect mode has the swirl effect selected.
      */
     function isSwirl(game) {
@@ -164,9 +164,9 @@
     }
 
     /**
-     * Updates the UI, rebuilding the board only when its image or grid dimensions change.
-     * @param {SessionState} currentSession - State to display.
-     * @param {SessionState} previousSession - Previously displayed state.
+     * Updates the UI, rebuilding the board only when its image or grid changes.
+     * @param {SessionState} currentSession - Session after the update.
+     * @param {SessionState} previousSession - Session before the update.
      * @returns {void}
      */
     function render(currentSession, previousSession) {
@@ -188,8 +188,8 @@
     }
 
     /**
-     * Updates preferences and mode settings, disabling configuration while loading.
-     * @param {SessionState} session - State supplying UI preferences, round settings, and loading status.
+     * Updates preferences and game settings, disabling controls while loading.
+     * @param {SessionState} session
      * @returns {void}
      */
     function renderSettings(session) {
@@ -241,8 +241,8 @@
 
     /**
      * Updates tile visibility and effects, using the active pixel cache for swirl rendering.
-     * @param {Game} currentGame - Round to display.
-     * @param {Game} previousGame - Previous round used to avoid redundant swirl drawing.
+     * @param {Game} currentGame - Game to display.
+     * @param {Game} previousGame - Game before the update, used to avoid redundant swirl drawing.
      * @param {boolean} loading - Whether image processing blocks tile interaction.
      * @returns {void}
      */
@@ -282,8 +282,8 @@
     }
 
     /**
-     * Updates image navigation, playback, and round action controls.
-     * @param {SessionState} session - State supplying round availability, loading status, and image count.
+     * Updates image navigation, automatic reveal, and game controls.
+     * @param {SessionState} session
      * @returns {void}
      */
     function renderActions(session) {
@@ -311,8 +311,8 @@
      * Translates the current message on every render;
      * restarts visibility only when its key or error status changes.
      * Loading messages remain visible until replaced.
-     * @param {SessionState} currentSession - State supplying the displayed message.
-     * @param {SessionState} previousSession - State used to detect message changes.
+     * @param {SessionState} currentSession - Session after the update.
+     * @param {SessionState} previousSession - Session before the update, used to detect message changes.
      * @returns {void}
      */
     function renderNotification(currentSession, previousSession) {
@@ -344,9 +344,9 @@
 
     /**
      * Releases newly created URLs, logs the failure, and leaves the committed images intact.
-     * @param {string[]} urls - Object URLs created for the rejected selection.
-     * @param {unknown} error - Reason the selection could not be loaded.
-     * @param {string} message - Translation key for the error notification.
+     * @param {string[]} urls - Object URLs created for the selection.
+     * @param {unknown} error - Reason loading failed.
+     * @param {string} message - Error translation key.
      * @returns {void}
      */
     function abortUpload(urls, error, message) {
@@ -356,11 +356,10 @@
     }
 
     /**
-     * @param {string} url - Object URL of the image to decode.
-     * @param {boolean} [includePixels=true] - Whether the image needs an effect pixel cache now.
-     * @returns {Promise<{imageData: GameImage, pixels: ImageData | null}>} Decoded metadata and
-     * optional scaled pixels. Rejects on decode, dimension, or requested pixel-read failure;
-     * leaves ownership of the object URL with the caller.
+     * @param {string} url - Image object URL.
+     * @param {boolean} [includePixels=true] - Whether to read pixels for image effects.
+     * @returns {Promise<{imageData: GameImage, pixels: ImageData | null}>} Image metadata and optional scaled pixels.
+     * Rejects if decoding, validation, or pixel reading fails. The caller retains the URL.
      */
     async function prepareImage(url, includePixels = true) {
         const image = new Image();
@@ -378,11 +377,11 @@
     }
 
     /**
-     * Processes files sequentially. Only the first image needs pixels immediately;
-     * On failure, frees new URLs and retains the old images/cache; on success, frees old URLs.
-     * @param {File[]} files - Selected files in their playback order.
-     * @returns {Promise<void>} Resolves after processing or a reported import failure;
-     * returns immediately if another image operation is loading.
+     * Loads selected files in order, reading pixels only for the first image.
+     * Keeps the current images on failure and releases their URLs after a successful import.
+     * @param {File[]} files - Selected files.
+     * @returns {Promise<void>} Resolves after loading or reporting an error;
+     * returns immediately if already loading.
      */
     async function loadFiles(files) {
         if (session.upload === Session.UploadState.LOADING) {
@@ -431,10 +430,10 @@
     }
 
     /**
-     * Prepares an existing image and resets its round without releasing image URLs.
+     * Prepares an existing image and resets the game without releasing image URLs.
      * @param {number} index - Index of the image to activate.
-     * @returns {Promise<void>} Resolves after activation or a reported preparation failure;
-     * returns immediately if loading, already selected, or the index is invalid.
+     * @returns {Promise<void>} Resolves after activation or reporting an error;
+     * returns immediately if unavailable.
      */
     async function changeImage(index) {
         const previousSession = session;
@@ -456,9 +455,9 @@
     }
 
     /**
-     * @param {-1 | 1} direction - Previous (-1) or next (1) image.
-     * @returns {Promise<void>} Resolves after switching images, wrapping at either end;
-     * returns immediately while loading or when fewer than two images are available.
+     * @param {-1 | 1} direction - Previous (-1) or next (1).
+     * @returns {Promise<void>} Resolves after switching images;
+     * returns immediately if switching is unavailable.
      */
     async function navigateImage(direction) {
         if (session.upload === Session.UploadState.LOADING || session.images.length <= 1) {

@@ -1,13 +1,13 @@
 /**
- * UI preferences, images, and current round.
+ * App preferences, selected images, and current game.
  * @typedef {Object} SessionState
  * @property {"light" | "dark"} theme
  * @property {"de" | "en"} language
  * @property {Game} game
- * @property {GameImage[]} images - Images in playback order.
- * @property {number} imageIndex - Active image index; zero for an empty series.
- * @property {"idle" | "loading"} upload - Whether importing or activating an image.
- * @property {string} message - Translation key overriding the round message, or empty.
+ * @property {GameImage[]} images - Selected images, in order.
+ * @property {number} imageIndex - Active image index; zero if no images are selected.
+ * @property {"idle" | "loading"} upload - Whether images are being loaded or changed.
+ * @property {string} message - Translation key overriding the game message, or empty.
  * @property {boolean} error
  */
 const Session = (() => {
@@ -17,9 +17,9 @@ const Session = (() => {
     const UploadState = Object.freeze({IDLE: 'idle', LOADING: 'loading'});
 
     /**
-     * @param {SessionState["theme"]} theme - Initial light or dark appearance.
-     * @param {SessionState["language"]} [language] - Initial UI language; defaults to English.
-     * @returns {SessionState} Session with the given preferences.
+     * @param {SessionState["theme"]} theme - Initial theme.
+     * @param {SessionState["language"]} [language] - Initial language; defaults to English.
+     * @returns {SessionState} New session with the given preferences.
      */
     function createSession(theme, language = I18n.Language.EN) {
         return {
@@ -35,10 +35,9 @@ const Session = (() => {
     }
 
     /**
-     * @param {SessionState} session - Current session.
-     * @param {SessionState["theme"]} theme - Requested light or dark appearance.
-     * @returns {SessionState} Session with the new theme and any session error cleared.
-     * Unchanged for the current valid theme; invalid themes set a session error.
+     * @param {SessionState} session
+     * @param {SessionState["theme"]} theme - New theme.
+     * @returns {SessionState} Session with the new theme; invalid themes set an error.
      */
     function changeTheme(session, theme) {
         if (!Object.values(Theme).includes(theme)) {
@@ -51,10 +50,9 @@ const Session = (() => {
     }
 
     /**
-     * @param {SessionState} session - Current session.
-     * @param {SessionState["language"]} language - Requested UI language.
-     * @returns {SessionState} Session with the new language and any session error cleared.
-     * Unchanged for the current valid language; invalid languages set a session error.
+     * @param {SessionState} session
+     * @param {SessionState["language"]} language - New language.
+     * @returns {SessionState} Session with the new language; invalid languages set an error.
      */
     function changeLanguage(session, language) {
         if (!Object.values(I18n.Language).includes(language)) {
@@ -67,10 +65,10 @@ const Session = (() => {
     }
 
     /**
-     * @param {SessionState} session - Current session.
-     * @param {File[]} files - New selection; individual files are validated by the loader.
-     * @returns {SessionState} Loading session with playback paused and the old images retained.
-     * Unchanged while loading; an empty selection sets a session error.
+     * @param {SessionState} session
+     * @param {File[]} files - Selected files.
+     * @returns {SessionState} Loading session with automatic reveal paused;
+     * an empty selection sets an error.
      */
     function beginUpload(session, files) {
         if (session.upload === UploadState.LOADING) {
@@ -89,10 +87,10 @@ const Session = (() => {
     }
 
     /**
-     * @param {SessionState} session - Loading session awaiting the images.
-     * @param {GameImage[]} images - Images in playback order.
-     * @returns {SessionState} Session starting at the first image, hidden and paused.
-     * Invalid metadata ends loading with an error and retains the old images; unchanged if not loading.
+     * @param {SessionState} session
+     * @param {GameImage[]} images - Loaded images, in order.
+     * @returns {SessionState} Session showing the first image with its game reset and paused;
+     * invalid images set an error.
      */
     function finishUpload(session, images) {
         if (session.upload !== UploadState.LOADING) {
@@ -113,9 +111,9 @@ const Session = (() => {
     }
 
     /**
-     * @param {SessionState} session - Loading session whose committed images and round are retained.
-     * @param {string} message - Translation key describing the failure.
-     * @returns {SessionState} Session with an error, retaining its images and round; unchanged if not loading.
+     * @param {SessionState} session
+     * @param {string} message - Error translation key.
+     * @returns {SessionState} Session with an error; unchanged if it is not loading.
      */
     function failImageLoading(session, message) {
         if (session.upload !== UploadState.LOADING) {
@@ -130,10 +128,10 @@ const Session = (() => {
     }
 
     /**
-     * @param {SessionState} session - Current session.
-     * @param {number} index - Target index in the images.
-     * @returns {SessionState} Loading session with the old round paused and retained.
-     * Unchanged while loading or already at the target; invalid indices set a session error.
+     * @param {SessionState} session
+     * @param {number} index - Index of the image to activate.
+     * @returns {SessionState} Loading session with the current game paused;
+     * invalid indices set an error.
      */
     function beginImageChange(session, index) {
         if (session.upload === UploadState.LOADING || index === session.imageIndex) {
@@ -152,10 +150,10 @@ const Session = (() => {
     }
 
     /**
-     * @param {SessionState} session - Loading session awaiting activation of an existing image.
-     * @param {number} index - Index of the image.
-     * @returns {SessionState} Session with the selected image reset and paused.
-     * Invalid indices end loading with an error; unchanged if not loading.
+     * @param {SessionState} session
+     * @param {number} index - Index of the image to activate.
+     * @returns {SessionState} Session showing the selected image with its game reset and paused;
+     * invalid indices set an error.
      */
     function finishImageChange(session, index) {
         if (session.upload !== UploadState.LOADING) {
@@ -175,10 +173,9 @@ const Session = (() => {
     }
 
     /**
-     * @param {SessionState} session - Session supplying the active position and images.
-     * @param {-1 | 1} direction - Previous (-1) or next (1) image.
-     * @returns {number} Target index, wrapping at either end;
-     * the current index when fewer than two images exist.
+     * @param {SessionState} session
+     * @param {-1 | 1} direction - Previous (-1) or next (1).
+     * @returns {number} Next image index, wrapping at either end.
      */
     function adjacentImageIndex(session, direction) {
         const imageCount = session.images.length;
@@ -189,10 +186,10 @@ const Session = (() => {
     }
 
     /**
-     * @param {SessionState} session - Current session.
-     * @param {(game: Game) => Game} transform - Pure round state transformation.
-     * @returns {SessionState} Session containing the transformed round with session messages cleared.
-     * Unchanged while loading or if the transformation returns the same round.
+     * @param {SessionState} session
+     * @param {(game: Game) => Game} transform - Game state update.
+     * @returns {SessionState} Session with the updated game;
+     * unchanged while loading or if the game is unchanged.
      */
     function applyGameChange(session, transform) {
         if (session.upload === UploadState.LOADING) {
