@@ -1,3 +1,5 @@
+/** @typedef {"de" | "en"} Language */
+
 const I18n = (() => {
     'use strict';
 
@@ -133,7 +135,7 @@ const I18n = (() => {
     };
 
     /**
-     * @param {SessionState["language"]} language - Language whose translation table is used.
+     * @param {Language} language - Language whose translation table is used.
      * @param {string} key - Translation key; an empty key produces an empty string.
      * @param {Object<string, string | number>} [values] - Values for named placeholders.
      * @returns {string} Localized text with all placeholders replaced.

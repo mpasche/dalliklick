@@ -9,7 +9,7 @@
  * App preferences, selected images, and current game.
  * @typedef {Object} SessionState
  * @property {"light" | "dark"} theme
- * @property {"de" | "en"} language
+ * @property {Language} language
  * @property {Game} game
  * @property {ImageSelection} selection
  * @property {"idle" | "loading"} upload - Whether images are being loaded or changed.
@@ -23,7 +23,7 @@ const Session = (() => {
 
     /**
      * @param {SessionState["theme"]} theme - Initial theme.
-     * @param {SessionState["language"]} [language] - Initial language; defaults to English.
+     * @param {Language} [language] - Initial language; defaults to English.
      * @returns {SessionState} New session with the given preferences.
      */
     function createSession(theme, language = I18n.Language.EN) {
@@ -54,7 +54,7 @@ const Session = (() => {
 
     /**
      * @param {SessionState} session
-     * @param {SessionState["language"]} language - New language.
+     * @param {Language} language - New language.
      * @returns {SessionState} Session with the new language; invalid languages set an error.
      */
     function changeLanguage(session, language) {

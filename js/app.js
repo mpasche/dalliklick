@@ -97,7 +97,7 @@
 
     /**
      * Updates static UI text, document language, and accessible image/navigation labels.
-     * @param {SessionState["language"]} language - Language for the document and UI labels.
+     * @param {Language} language - Language for the document and UI labels.
      * @returns {void}
      */
     function renderLanguage(language) {
