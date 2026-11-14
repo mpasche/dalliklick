@@ -1,7 +1,7 @@
 'use strict';
 
 // Increment whenever a file in FILES_TO_CACHE changes.
-const CACHE_VERSION = 5;
+const CACHE_VERSION = 6;
 const CACHE_PREFIX = `dalliklick:${self.registration.scope}:`;
 const CACHE_NAME = `${CACHE_PREFIX}v${CACHE_VERSION}`;
 const FILES_TO_CACHE = [
@@ -14,6 +14,7 @@ const FILES_TO_CACHE = [
     './js/effects.js',
     './js/engine.js',
     './js/i18n.js',
+    './js/notification.js',
     './js/pwa.js',
     './js/session.js',
 ].map((path) => new URL(path, self.registration.scope).href);

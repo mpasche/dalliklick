@@ -19,8 +19,7 @@
  * @property {number} remainingEffectSteps
  * @property {boolean} paused
  * @property {number} intervalSeconds
- * @property {string} message - Translation key, or an empty string for no message.
- * @property {boolean} error
+ * @property {NotificationMessage | null} notification
  */
 const GameEngine = (() => {
     'use strict';
@@ -62,8 +61,7 @@ const GameEngine = (() => {
             remainingEffectSteps: MAX_EFFECT_STEPS,
             paused: true,
             intervalSeconds: 1,
-            message: '',
-            error: false,
+            notification: null,
         };
     }
 
@@ -196,7 +194,7 @@ const GameEngine = (() => {
      */
     function loadImage(game, image) {
         if (!isValidImage(image)) {
-            return {...game, message: 'error.fileDecode', error: true};
+            return {...game, notification: Notification.error('error.fileDecode')};
         }
         return {
             ...game,
@@ -204,8 +202,7 @@ const GameEngine = (() => {
             hidden: createGrid(game.rows, game.columns, true),
             remainingEffectSteps: game.effectSteps,
             paused: true,
-            message: 'message.ready',
-            error: false,
+            notification: Notification.info('message.ready'),
         };
     }
 
@@ -216,13 +213,13 @@ const GameEngine = (() => {
      */
     function changeMode(game, mode) {
         if (!Object.values(GameMode).includes(mode)) {
-            return {...game, message: 'error.mode', error: true};
+            return {...game, notification: Notification.error('error.mode')};
         }
-        if (mode === game.mode && !game.error) {
+        if (mode === game.mode && !game.notification?.error) {
             return game;
         }
         const changed = {...game, mode, paused: true};
-        return {...changed, message: isComplete(changed) ? 'message.complete' : '', error: false};
+        return {...changed, notification: isComplete(changed) ? Notification.info('message.complete') : null};
     }
 
     /**
@@ -234,9 +231,9 @@ const GameEngine = (() => {
     function changeGrid(game, rows, columns) {
         if (!Number.isInteger(rows) || rows < 1 || rows > MAX_ROWS ||
             !Number.isInteger(columns) || columns < 1 || columns > MAX_COLUMNS) {
-            return {...game, message: 'error.grid', error: true};
+            return {...game, notification: Notification.error('error.grid')};
         }
-        if (rows === game.rows && columns === game.columns && !game.error) {
+        if (rows === game.rows && columns === game.columns && !game.notification?.error) {
             return game;
         }
         return resetGame({...game, rows, columns});
@@ -249,12 +246,13 @@ const GameEngine = (() => {
      */
     function changeGridMode(game, gridMode) {
         if (!Object.values(GridMode).includes(gridMode)) {
-            return {...game, message: 'error.gridMode', error: true};
+            return {...game, notification: Notification.error('error.gridMode')};
         }
-        if (gridMode === game.gridMode && !game.error) {
+        if (gridMode === game.gridMode && !game.notification?.error) {
             return game;
         }
-        return {...game, gridMode, paused: true, message: isComplete(game) ? 'message.complete' : '', error: false};
+        return {...game, gridMode, paused: true,
+            notification: isComplete(game) ? Notification.info('message.complete') : null};
     }
 
     /**
@@ -264,12 +262,13 @@ const GameEngine = (() => {
      */
     function changeEffect(game, effect) {
         if (!Object.values(Effect).includes(effect)) {
-            return {...game, message: 'error.effect', error: true};
+            return {...game, notification: Notification.error('error.effect')};
         }
-        if (effect === game.effect && !game.error) {
+        if (effect === game.effect && !game.notification?.error) {
             return game;
         }
-        return {...game, effect, paused: true, message: isComplete(game) ? 'message.complete' : '', error: false};
+        return {...game, effect, paused: true,
+            notification: isComplete(game) ? Notification.info('message.complete') : null};
     }
 
     /**
@@ -281,15 +280,15 @@ const GameEngine = (() => {
     function changeEffectSteps(game, effectSteps) {
         if (!Number.isInteger(effectSteps) ||
             effectSteps < MIN_EFFECT_STEPS || effectSteps > MAX_EFFECT_STEPS) {
-            return {...game, message: 'error.effectSteps', error: true};
+            return {...game, notification: Notification.error('error.effectSteps')};
         }
-        if (effectSteps === game.effectSteps && !game.error) {
+        if (effectSteps === game.effectSteps && !game.notification?.error) {
             return game;
         }
         const changed = {
             ...game, effectSteps, remainingEffectSteps: effectSteps, paused: true,
         };
-        return {...changed, message: isComplete(changed) ? 'message.complete' : '', error: false};
+        return {...changed, notification: isComplete(changed) ? Notification.info('message.complete') : null};
     }
 
     /**
@@ -300,12 +299,13 @@ const GameEngine = (() => {
     function changeInterval(game, intervalSeconds) {
         if (!Number.isInteger(intervalSeconds) ||
             intervalSeconds < 1 || intervalSeconds > MAX_INTERVAL) {
-            return {...game, message: 'error.interval', error: true};
+            return {...game, notification: Notification.error('error.interval')};
         }
-        if (intervalSeconds === game.intervalSeconds && !game.error) {
+        if (intervalSeconds === game.intervalSeconds && !game.notification?.error) {
             return game;
         }
-        return {...game, intervalSeconds, error: false, message: isComplete(game) ? 'message.complete' : ''};
+        return {...game, intervalSeconds,
+            notification: isComplete(game) ? Notification.info('message.complete') : null};
     }
 
     /**
@@ -316,7 +316,7 @@ const GameEngine = (() => {
         if (!isAutomatic(game) || !isInProgress(game)) {
             return game;
         }
-        return {...game, paused: !game.paused, message: '', error: false};
+        return {...game, paused: !game.paused, notification: null};
     }
 
     /**
@@ -341,7 +341,7 @@ const GameEngine = (() => {
         hidden[row] = [...hidden[row]];
         hidden[row][column] = false;
         const changed = {...game, hidden};
-        return {...changed, message: isComplete(changed) ? 'message.complete' : '', error: false};
+        return {...changed, notification: isComplete(changed) ? Notification.info('message.complete') : null};
     }
 
     /**
@@ -369,7 +369,7 @@ const GameEngine = (() => {
             const changed = {
                 ...game, remainingEffectSteps: game.remainingEffectSteps - 1,
             };
-            return {...changed, message: isComplete(changed) ? 'message.complete' : '', error: false};
+            return {...changed, notification: isComplete(changed) ? Notification.info('message.complete') : null};
         }
         const tiles = hiddenTiles(game);
         const tile = tiles[Math.floor(Math.random() * tiles.length)];
@@ -386,8 +386,7 @@ const GameEngine = (() => {
             hidden: createGrid(game.rows, game.columns, true),
             remainingEffectSteps: game.effectSteps,
             paused: true,
-            message: 'message.reset',
-            error: false,
+            notification: Notification.info('message.reset'),
         };
     }
 
@@ -403,8 +402,7 @@ const GameEngine = (() => {
             ...game,
             hidden: createGrid(game.rows, game.columns, false),
             remainingEffectSteps: 0,
-            message: 'message.complete',
-            error: false,
+            notification: Notification.info('message.complete'),
         };
     }
 

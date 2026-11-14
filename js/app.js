@@ -1,7 +1,8 @@
 (() => {
     'use strict';
 
-    const NOTIFICATION_DURATION_MS = 5000;
+    const NOTIFICATION_DURATION_MS = 3000;
+    const ERROR_NOTIFICATION_DURATION_MS = 6000;
 
     const elements = Object.fromEntries([
         'theme', 'language',
@@ -316,13 +317,15 @@
      * @returns {void}
      */
     function renderNotification(currentSession, previousSession) {
-        const key = currentSession.message || currentSession.game.message;
-        const previousKey = previousSession.message || previousSession.game.message;
-        const error = currentSession.message ? currentSession.error : currentSession.game.error;
-        const previousError = previousSession.message ? previousSession.error : previousSession.game.error;
+        const notification = currentSession.notification ?? currentSession.game.notification;
+        const previousNotification = previousSession.notification ?? previousSession.game.notification;
 
-        elements['message'].textContent = I18n.translate(currentSession.language, key);
-        if (key === previousKey && error === previousError) {
+        elements['message'].textContent = notification
+            ? I18n.translate(currentSession.language, notification.key)
+            : '';
+
+        if (notification?.key === previousNotification?.key &&
+            notification?.error === previousNotification?.error) {
             return;
         }
 
@@ -331,14 +334,14 @@
             notificationTimer = null;
         }
 
-        elements['notification'].classList.toggle('error', error);
-        elements['notification'].classList.toggle('visible', key !== '');
+        elements['notification'].classList.toggle('error', notification?.error === true);
+        elements['notification'].classList.toggle('visible', notification !== null);
 
-        if (key !== '' && currentSession.upload !== Session.UploadState.LOADING) {
+        if (notification !== null && currentSession.upload !== Session.UploadState.LOADING) {
             notificationTimer = window.setTimeout(() => {
                 elements['notification'].classList.remove('visible');
                 notificationTimer = null;
-            }, NOTIFICATION_DURATION_MS);
+            }, notification.error ? ERROR_NOTIFICATION_DURATION_MS : NOTIFICATION_DURATION_MS);
         }
     }
 

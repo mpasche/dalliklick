@@ -7,8 +7,7 @@
  * @property {GameImage[]} images - Selected images, in order.
  * @property {number} imageIndex - Active image index; zero if no images are selected.
  * @property {"idle" | "loading"} upload - Whether images are being loaded or changed.
- * @property {string} message - Translation key overriding the game message, or empty.
- * @property {boolean} error
+ * @property {NotificationMessage | null} notification - Overrides the game notification when present.
  */
 const Session = (() => {
     'use strict';
@@ -29,8 +28,7 @@ const Session = (() => {
             images: [],
             imageIndex: 0,
             upload: UploadState.IDLE,
-            message: '',
-            error: false,
+            notification: null,
         };
     }
 
@@ -41,12 +39,12 @@ const Session = (() => {
      */
     function changeTheme(session, theme) {
         if (!Object.values(Theme).includes(theme)) {
-            return {...session, message: 'error.theme', error: true};
+            return {...session, notification: Notification.error('error.theme')};
         }
-        if (theme === session.theme && !session.error) {
+        if (theme === session.theme && !session.notification?.error) {
             return session;
         }
-        return {...session, theme, message: session.error ? '' : session.message, error: false};
+        return {...session, theme, notification: session.notification?.error ? null : session.notification};
     }
 
     /**
@@ -56,12 +54,12 @@ const Session = (() => {
      */
     function changeLanguage(session, language) {
         if (!Object.values(I18n.Language).includes(language)) {
-            return {...session, message: 'error.language', error: true};
+            return {...session, notification: Notification.error('error.language')};
         }
-        if (language === session.language && !session.error) {
+        if (language === session.language && !session.notification?.error) {
             return session;
         }
-        return {...session, language, message: session.error ? '' : session.message, error: false};
+        return {...session, language, notification: session.notification?.error ? null : session.notification};
     }
 
     /**
@@ -75,14 +73,13 @@ const Session = (() => {
             return session;
         }
         if (!files || files.length === 0) {
-            return {...session, message: 'error.fileCount', error: true};
+            return {...session, notification: Notification.error('error.fileCount')};
         }
         return {
             ...session,
             game: GameEngine.pauseGame(session.game),
             upload: UploadState.LOADING,
-            message: 'message.preparing',
-            error: false,
+            notification: Notification.info('message.preparing'),
         };
     }
 
@@ -105,8 +102,7 @@ const Session = (() => {
             imageIndex: 0,
             game: GameEngine.loadImage(session.game, images[0]),
             upload: UploadState.IDLE,
-            message: '',
-            error: false,
+            notification: null,
         };
     }
 
@@ -122,8 +118,7 @@ const Session = (() => {
         return {
             ...session,
             upload: UploadState.IDLE,
-            message,
-            error: true,
+            notification: Notification.error(message),
         };
     }
 
@@ -138,14 +133,13 @@ const Session = (() => {
             return session;
         }
         if (!Number.isInteger(index) || index < 0 || index >= session.images.length) {
-            return {...session, message: 'error.imageIndex', error: true};
+            return {...session, notification: Notification.error('error.imageIndex')};
         }
         return {
             ...session,
             game: GameEngine.pauseGame(session.game),
             upload: UploadState.LOADING,
-            message: 'message.loading',
-            error: false,
+            notification: Notification.info('message.loading'),
         };
     }
 
@@ -167,8 +161,7 @@ const Session = (() => {
             imageIndex: index,
             game: GameEngine.loadImage(session.game, session.images[index]),
             upload: UploadState.IDLE,
-            message: '',
-            error: false,
+            notification: null,
         };
     }
 
@@ -199,7 +192,7 @@ const Session = (() => {
         if (game === session.game) {
             return session;
         }
-        return {...session, game, message: '', error: false};
+        return {...session, game, notification: null};
     }
 
     return Object.freeze({
