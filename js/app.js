@@ -5,7 +5,7 @@
     const ERROR_NOTIFICATION_DURATION_MS = 6000;
 
     const elements = Object.fromEntries([
-        'theme', 'language',
+        'app-version', 'theme', 'language',
         'drop-zone', 'file-input',
         'mode-description',
         'grid-settings', 'rows', 'columns', 'grid-mode-description',
@@ -77,6 +77,14 @@
                 updateGame(GameEngine.revealNext);
             }, currentGame.intervalSeconds * 1000);
         }
+    }
+
+    /**
+     * Displays the loaded app version.
+     * @returns {void}
+     */
+    function initializeVersion() {
+        elements['app-version'].textContent = `v${APP_VERSION}`;
     }
 
     /**
@@ -551,6 +559,7 @@
     elements['reveal-button'].addEventListener('click', () => updateGame(GameEngine.revealAll));
     elements['reset-button'].addEventListener('click', () => updateGame(GameEngine.resetGame));
 
+    initializeVersion();
     initializeControls();
     renderLanguage(session.language);
     buildBoard(session.game);

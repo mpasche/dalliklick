@@ -148,7 +148,7 @@ select:hover {
 
 .brand {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: .75rem;
     margin: 0 auto 0 0;
     font-size: 2.5rem;
@@ -160,6 +160,7 @@ select:hover {
 
 .logo {
     display: block;
+    align-self: center;
     flex-shrink: 0;
     width: 1.75rem;
     height: 1.75rem;

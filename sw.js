@@ -1,14 +1,15 @@
 'use strict';
 
-// Increment whenever a file in FILES_TO_CACHE changes.
-const CACHE_VERSION = 7;
+importScripts('./version.js');
+
 const CACHE_PREFIX = `dalliklick:${self.registration.scope}:`;
-const CACHE_NAME = `${CACHE_PREFIX}v${CACHE_VERSION}`;
+const CACHE_NAME = `${CACHE_PREFIX}v${APP_VERSION}`;
 const FILES_TO_CACHE = [
     './',
     './index.html',
     './manifest.webmanifest',
     './styles.css',
+    './version.js',
     './icons/icon.svg',
     './js/app.js',
     './js/effects.js',
