@@ -30,6 +30,7 @@
 }
 
 body {
+    min-width: 320px;
     margin: 0;
     background: var(--background);
     color: var(--text);
@@ -533,7 +534,7 @@ input[type="range"] {
     }
 
     .workspace {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto auto auto;
     }
 
@@ -562,7 +563,9 @@ input[type="range"] {
     }
 
     .controls {
+        min-width: 0;
         overflow-y: visible;
+        overflow-wrap: anywhere;
     }
 
     .game-panel {
@@ -589,6 +592,7 @@ input[type="range"] {
 
     .play-controls {
         grid-area: 3 / 1;
+        overflow-wrap: anywhere;
     }
 
     .notification {
