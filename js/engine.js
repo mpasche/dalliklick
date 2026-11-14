@@ -1,22 +1,34 @@
+/** @typedef {"no-image" | "in-progress" | "completed"} GameStateValue */
+
 /**
  * Decoded image metadata.
  * @typedef {{url: string, width: number, height: number}} GameImage
  */
 
-/** @typedef {"no-image" | "in-progress" | "completed"} GameStateValue */
+/**
+ * Grid settings and reveal progress.
+ * @typedef {Object} GameGrid
+ * @property {number} rows
+ * @property {number} columns
+ * @property {"manual" | "random"} mode
+ * @property {boolean[][]} hidden - True for tiles that still cover the image.
+ */
+
+/**
+ * Effect settings and reveal progress.
+ * @typedef {Object} GameEffect
+ * @property {"blur" | "distort" | "zoom" | "swirl"} type
+ * @property {number} steps
+ * @property {number} remainingSteps
+ */
 
 /**
  * Current game state.
  * @typedef {Object} Game
  * @property {GameImage | null} image
- * @property {number} rows
- * @property {number} columns
- * @property {boolean[][]} hidden - True for tiles that still cover the image.
+ * @property {GameGrid} grid
+ * @property {GameEffect} effect
  * @property {"grid" | "effect"} mode
- * @property {"manual" | "random"} gridMode
- * @property {"blur" | "distort" | "zoom" | "swirl"} effect
- * @property {number} effectSteps
- * @property {number} remainingEffectSteps
  * @property {boolean} paused
  * @property {number} intervalSeconds
  * @property {NotificationMessage | null} notification
@@ -51,14 +63,18 @@ const GameEngine = (() => {
     function createGame() {
         return {
             image: null,
-            rows: DEFAULT_ROWS,
-            columns: DEFAULT_COLUMNS,
-            hidden: createGrid(DEFAULT_ROWS, DEFAULT_COLUMNS, true),
+            grid: {
+                rows: DEFAULT_ROWS,
+                columns: DEFAULT_COLUMNS,
+                mode: GridMode.MANUAL,
+                hidden: createGrid(DEFAULT_ROWS, DEFAULT_COLUMNS, true),
+            },
+            effect: {
+                type: Effect.BLUR,
+                steps: MAX_EFFECT_STEPS,
+                remainingSteps: MAX_EFFECT_STEPS,
+            },
             mode: GameMode.GRID,
-            gridMode: GridMode.MANUAL,
-            effect: Effect.BLUR,
-            effectSteps: MAX_EFFECT_STEPS,
-            remainingEffectSteps: MAX_EFFECT_STEPS,
             paused: true,
             intervalSeconds: 1,
             notification: null,
@@ -98,7 +114,7 @@ const GameEngine = (() => {
      * @returns {boolean} Whether the tile is hidden; false if the coordinates are outside the grid.
      */
     function isHidden(game, row, column) {
-        return game.hidden[row]?.[column] === true;
+        return game.grid.hidden[row]?.[column] === true;
     }
 
     /**
@@ -107,9 +123,9 @@ const GameEngine = (() => {
      */
     function isComplete(game) {
         if (game.mode === GameMode.EFFECT) {
-            return game.remainingEffectSteps === 0;
+            return game.effect.remainingSteps === 0;
         }
-        return !game.hidden.some((row) => row.some((hidden) => hidden));
+        return !game.grid.hidden.some((row) => row.some((hidden) => hidden));
     }
 
     /**
@@ -131,7 +147,7 @@ const GameEngine = (() => {
      * @returns {boolean} Whether its mode reveals the image automatically.
      */
     function isAutomatic(game) {
-        return game.mode === GameMode.EFFECT || game.gridMode === GridMode.RANDOM;
+        return game.mode === GameMode.EFFECT || game.grid.mode === GridMode.RANDOM;
     }
 
     /**
@@ -158,7 +174,7 @@ const GameEngine = (() => {
         if (game.mode !== GameMode.EFFECT) {
             return 0;
         }
-        return game.remainingEffectSteps / MAX_EFFECT_STEPS;
+        return game.effect.remainingSteps / MAX_EFFECT_STEPS;
     }
 
     /**
@@ -167,8 +183,8 @@ const GameEngine = (() => {
      */
     function hiddenTiles(game) {
         const hidden = [];
-        for (let row = 0; row < game.rows; row++) {
-            for (let column = 0; column < game.columns; column++) {
+        for (let row = 0; row < game.grid.rows; row++) {
+            for (let column = 0; column < game.grid.columns; column++) {
                 if (isHidden(game, row, column)) {
                     hidden.push({row, column});
                 }
@@ -199,8 +215,8 @@ const GameEngine = (() => {
         return {
             ...game,
             image: {...image},
-            hidden: createGrid(game.rows, game.columns, true),
-            remainingEffectSteps: game.effectSteps,
+            grid: {...game.grid, hidden: createGrid(game.grid.rows, game.grid.columns, true)},
+            effect: {...game.effect, remainingSteps: game.effect.steps},
             paused: true,
             notification: Notification.info('message.ready'),
         };
@@ -233,41 +249,41 @@ const GameEngine = (() => {
             !Number.isInteger(columns) || columns < 1 || columns > MAX_COLUMNS) {
             return {...game, notification: Notification.error('error.grid')};
         }
-        if (rows === game.rows && columns === game.columns && !game.notification?.error) {
+        if (rows === game.grid.rows && columns === game.grid.columns && !game.notification?.error) {
             return game;
         }
-        return resetGame({...game, rows, columns});
+        return resetGame({...game, grid: {...game.grid, rows, columns}});
     }
 
     /**
      * @param {Game} game
-     * @param {Game["gridMode"]} gridMode - Requested manual or random tile reveal mode.
+     * @param {GameGrid["mode"]} gridMode - Requested manual or random tile reveal mode.
      * @returns {Game} Game with the selected grid mode, paused; invalid modes set an error.
      */
     function changeGridMode(game, gridMode) {
         if (!Object.values(GridMode).includes(gridMode)) {
             return {...game, notification: Notification.error('error.gridMode')};
         }
-        if (gridMode === game.gridMode && !game.notification?.error) {
+        if (gridMode === game.grid.mode && !game.notification?.error) {
             return game;
         }
-        return {...game, gridMode, paused: true,
+        return {...game, grid: {...game.grid, mode: gridMode}, paused: true,
             notification: isComplete(game) ? Notification.info('message.complete') : null};
     }
 
     /**
      * @param {Game} game
-     * @param {Game["effect"]} effect - Requested image distortion effect.
+     * @param {GameEffect["type"]} effect - Requested image distortion effect.
      * @returns {Game} Game with the selected effect, paused; invalid effects set an error.
      */
     function changeEffect(game, effect) {
         if (!Object.values(Effect).includes(effect)) {
             return {...game, notification: Notification.error('error.effect')};
         }
-        if (effect === game.effect && !game.notification?.error) {
+        if (effect === game.effect.type && !game.notification?.error) {
             return game;
         }
-        return {...game, effect, paused: true,
+        return {...game, effect: {...game.effect, type: effect}, paused: true,
             notification: isComplete(game) ? Notification.info('message.complete') : null};
     }
 
@@ -282,11 +298,13 @@ const GameEngine = (() => {
             effectSteps < MIN_EFFECT_STEPS || effectSteps > MAX_EFFECT_STEPS) {
             return {...game, notification: Notification.error('error.effectSteps')};
         }
-        if (effectSteps === game.effectSteps && !game.notification?.error) {
+        if (effectSteps === game.effect.steps && !game.notification?.error) {
             return game;
         }
         const changed = {
-            ...game, effectSteps, remainingEffectSteps: effectSteps, paused: true,
+            ...game,
+            effect: {...game.effect, steps: effectSteps, remainingSteps: effectSteps},
+            paused: true,
         };
         return {...changed, notification: isComplete(changed) ? Notification.info('message.complete') : null};
     }
@@ -337,10 +355,10 @@ const GameEngine = (() => {
         if (!isInProgress(game) || !isHidden(game, row, column)) {
             return game;
         }
-        const hidden = [...game.hidden];
+        const hidden = [...game.grid.hidden];
         hidden[row] = [...hidden[row]];
         hidden[row][column] = false;
-        const changed = {...game, hidden};
+        const changed = {...game, grid: {...game.grid, hidden}};
         return {...changed, notification: isComplete(changed) ? Notification.info('message.complete') : null};
     }
 
@@ -367,7 +385,7 @@ const GameEngine = (() => {
         }
         if (game.mode === GameMode.EFFECT) {
             const changed = {
-                ...game, remainingEffectSteps: game.remainingEffectSteps - 1,
+                ...game, effect: {...game.effect, remainingSteps: game.effect.remainingSteps - 1},
             };
             return {...changed, notification: isComplete(changed) ? Notification.info('message.complete') : null};
         }
@@ -383,8 +401,8 @@ const GameEngine = (() => {
     function resetGame(game) {
         return {
             ...game,
-            hidden: createGrid(game.rows, game.columns, true),
-            remainingEffectSteps: game.effectSteps,
+            grid: {...game.grid, hidden: createGrid(game.grid.rows, game.grid.columns, true)},
+            effect: {...game.effect, remainingSteps: game.effect.steps},
             paused: true,
             notification: Notification.info('message.reset'),
         };
@@ -400,8 +418,8 @@ const GameEngine = (() => {
         }
         return {
             ...game,
-            hidden: createGrid(game.rows, game.columns, false),
-            remainingEffectSteps: 0,
+            grid: {...game.grid, hidden: createGrid(game.grid.rows, game.grid.columns, false)},
+            effect: {...game.effect, remainingSteps: 0},
             notification: Notification.info('message.complete'),
         };
     }

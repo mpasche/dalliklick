@@ -123,22 +123,22 @@
         }
 
         const frame = elements['board-frame'];
-        frame.style.setProperty('--rows', String(game.rows));
-        frame.style.setProperty('--columns', String(game.columns));
+        frame.style.setProperty('--rows', String(game.grid.rows));
+        frame.style.setProperty('--columns', String(game.grid.columns));
         frame.style.setProperty('--aspect-ratio', String(game.image.width / game.image.height));
 
-        for (let row = 0; row < game.rows; row++) {
+        for (let row = 0; row < game.grid.rows; row++) {
             const label = document.createElement('span');
             label.textContent = GameEngine.rowNumber(row);
             elements['row-labels'].append(label);
         }
-        for (let column = 0; column < game.columns; column++) {
+        for (let column = 0; column < game.grid.columns; column++) {
             const label = document.createElement('span');
             label.textContent = GameEngine.columnLetter(column);
             elements['column-labels'].append(label);
         }
-        for (let row = 0; row < game.rows; row++) {
-            for (let column = 0; column < game.columns; column++) {
+        for (let row = 0; row < game.grid.rows; row++) {
+            for (let column = 0; column < game.grid.columns; column++) {
                 const label = document.createElement('span');
                 label.className = 'tile-label';
                 label.textContent = GameEngine.tileLabel(row, column);
@@ -161,7 +161,7 @@
      */
     function isSwirl(game) {
         return game.mode === GameEngine.GameMode.EFFECT &&
-            game.effect === GameEngine.Effect.SWIRL;
+            game.effect.type === GameEngine.Effect.SWIRL;
     }
 
     /**
@@ -177,8 +177,8 @@
             renderLanguage(currentSession.language);
         }
         if (previousGame.image !== currentGame.image ||
-            previousGame.rows !== currentGame.rows ||
-            previousGame.columns !== currentGame.columns) {
+            previousGame.grid.rows !== currentGame.grid.rows ||
+            previousGame.grid.columns !== currentGame.grid.columns) {
             buildBoard(currentGame);
         }
 
@@ -213,22 +213,22 @@
             `mode.${game.mode}Hint`);
 
         elements['grid-settings'].hidden = effectMode;
-        elements['rows'].value = game.rows;
-        elements['columns'].value = game.columns;
+        elements['rows'].value = game.grid.rows;
+        elements['columns'].value = game.grid.columns;
         elements['rows'].disabled = loading;
         elements['columns'].disabled = loading;
         gridModeInputs.forEach((input) => {
-            input.checked = input.value === game.gridMode;
+            input.checked = input.value === game.grid.mode;
             input.disabled = loading;
         });
         elements['grid-mode-description'].textContent = I18n.translate(session.language,
-            `gridMode.${game.gridMode}Hint`);
+            `gridMode.${game.grid.mode}Hint`);
         elements['effect-settings'].hidden = !effectMode;
-        elements['effect'].value = game.effect;
+        elements['effect'].value = game.effect.type;
         elements['effect'].disabled = loading;
         elements['effect-steps'].disabled = loading;
-        elements['effect-steps'].value = game.effectSteps;
-        elements['effect-steps-text'].textContent = String(game.effectSteps);
+        elements['effect-steps'].value = game.effect.steps;
+        elements['effect-steps-text'].textContent = String(game.effect.steps);
 
         elements['automatic-settings'].hidden = !automatic;
         elements['interval-name'].textContent = I18n.translate(session.language,
@@ -270,13 +270,13 @@
 
         const strength = GameEngine.effectStrength(currentGame);
 
-        elements['board'].dataset.effect = effectMode && strength > 0 ? currentGame.effect : 'none';
+        elements['board'].dataset.effect = effectMode && strength > 0 ? currentGame.effect.type : 'none';
         elements['board'].style.setProperty('--strength', String(strength));
         elements['distort-map'].setAttribute('scale', String(strength * Effects.MAX_DISTORT_SCALE));
         if (currentGame.image && isSwirl(currentGame) && strength > 0 &&
             (!isSwirl(previousGame) ||
-                previousGame.remainingEffectSteps !== currentGame.remainingEffectSteps ||
-                previousGame.effectSteps !== currentGame.effectSteps ||
+                previousGame.effect.remainingSteps !== currentGame.effect.remainingSteps ||
+                previousGame.effect.steps !== currentGame.effect.steps ||
                 previousGame.image !== currentGame.image)) {
             Effects.drawSwirl(elements['swirl-canvas'], pixelCache, strength);
         }
@@ -294,11 +294,11 @@
         const noImage = state === GameEngine.GameState.NO_IMAGE;
         const completed = state === GameEngine.GameState.COMPLETED;
 
-        elements['image-navigation'].hidden = noImage || session.images.length <= 1;
-        elements['previous-button'].disabled = loading || noImage || session.images.length <= 1;
-        elements['next-button'].disabled = loading || noImage || session.images.length <= 1;
+        elements['image-navigation'].hidden = noImage || session.selection.images.length <= 1;
+        elements['previous-button'].disabled = loading || noImage || session.selection.images.length <= 1;
+        elements['next-button'].disabled = loading || noImage || session.selection.images.length <= 1;
         elements['image-position'].textContent = I18n.translate(session.language, 'image.position',
-            {index: session.imageIndex + 1, total: session.images.length});
+            {index: session.selection.index + 1, total: session.selection.images.length});
 
         elements['play-button'].textContent = I18n.translate(session.language,
             GameEngine.isAutoRunning(game) ? 'button.pause' : 'button.start');
@@ -418,9 +418,9 @@
             }
         }
 
-        const previousImages = session.images;
+        const previousImages = session.selection.images;
         const nextSession = Session.finishUpload(session, images);
-        if (nextSession.images === previousImages) {
+        if (nextSession.selection.images === previousImages) {
             abortUpload(urls, new Error('Invalid image selection.'), 'error.uploadDecode');
             return;
         }
@@ -447,7 +447,7 @@
         }
         let prepared;
         try {
-            prepared = await prepareImage(session.images[index].url);
+            prepared = await prepareImage(session.selection.images[index].url);
         } catch (error) {
             console.error('Image could not be activated.', error);
             updateSession((currentSession) => Session.failImageLoading(currentSession, 'error.imageChange'));
@@ -463,7 +463,7 @@
      * returns immediately if switching is unavailable.
      */
     async function navigateImage(direction) {
-        if (session.upload === Session.UploadState.LOADING || session.images.length <= 1) {
+        if (session.upload === Session.UploadState.LOADING || session.selection.images.length <= 1) {
             return;
         }
         await changeImage(Session.adjacentImageIndex(session, direction));
@@ -505,11 +505,11 @@
 
     elements['rows'].addEventListener('change', (event) => {
         updateGame((currentGame) => GameEngine.changeGrid(
-            currentGame, Number(event.target.value), currentGame.columns));
+            currentGame, Number(event.target.value), currentGame.grid.columns));
     });
     elements['columns'].addEventListener('change', (event) => {
         updateGame((currentGame) => GameEngine.changeGrid(
-            currentGame, currentGame.rows, Number(event.target.value)));
+            currentGame, currentGame.grid.rows, Number(event.target.value)));
     });
 
     gridModeInputs.forEach((input) => {

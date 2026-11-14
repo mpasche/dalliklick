@@ -1,11 +1,17 @@
 /**
+ * Selected images and the active position.
+ * @typedef {Object} ImageSelection
+ * @property {GameImage[]} images - Selected images, in order.
+ * @property {number} index - Active image index; zero if no images are selected.
+ */
+
+/**
  * App preferences, selected images, and current game.
  * @typedef {Object} SessionState
  * @property {"light" | "dark"} theme
  * @property {"de" | "en"} language
  * @property {Game} game
- * @property {GameImage[]} images - Selected images, in order.
- * @property {number} imageIndex - Active image index; zero if no images are selected.
+ * @property {ImageSelection} selection
  * @property {"idle" | "loading"} upload - Whether images are being loaded or changed.
  * @property {NotificationMessage | null} notification - Overrides the game notification when present.
  */
@@ -25,8 +31,7 @@ const Session = (() => {
             theme,
             language,
             game: GameEngine.createGame(),
-            images: [],
-            imageIndex: 0,
+            selection: {images: [], index: 0},
             upload: UploadState.IDLE,
             notification: null,
         };
@@ -98,8 +103,10 @@ const Session = (() => {
         }
         return {
             ...session,
-            images: images.map((image) => ({...image})),
-            imageIndex: 0,
+            selection: {
+                images: images.map((image) => ({...image})),
+                index: 0,
+            },
             game: GameEngine.loadImage(session.game, images[0]),
             upload: UploadState.IDLE,
             notification: null,
@@ -129,10 +136,10 @@ const Session = (() => {
      * invalid indices set an error.
      */
     function beginImageChange(session, index) {
-        if (session.upload === UploadState.LOADING || index === session.imageIndex) {
+        if (session.upload === UploadState.LOADING || index === session.selection.index) {
             return session;
         }
-        if (!Number.isInteger(index) || index < 0 || index >= session.images.length) {
+        if (!Number.isInteger(index) || index < 0 || index >= session.selection.images.length) {
             return {...session, notification: Notification.error('error.imageIndex')};
         }
         return {
@@ -153,13 +160,13 @@ const Session = (() => {
         if (session.upload !== UploadState.LOADING) {
             return session;
         }
-        if (!Number.isInteger(index) || index < 0 || index >= session.images.length) {
+        if (!Number.isInteger(index) || index < 0 || index >= session.selection.images.length) {
             return failImageLoading(session, 'error.imageIndex');
         }
         return {
             ...session,
-            imageIndex: index,
-            game: GameEngine.loadImage(session.game, session.images[index]),
+            selection: {...session.selection, index},
+            game: GameEngine.loadImage(session.game, session.selection.images[index]),
             upload: UploadState.IDLE,
             notification: null,
         };
@@ -171,11 +178,11 @@ const Session = (() => {
      * @returns {number} Next image index, wrapping at either end.
      */
     function adjacentImageIndex(session, direction) {
-        const imageCount = session.images.length;
+        const imageCount = session.selection.images.length;
         if (imageCount <= 1) {
-            return session.imageIndex;
+            return session.selection.index;
         }
-        return (session.imageIndex + direction + imageCount) % imageCount;
+        return (session.selection.index + direction + imageCount) % imageCount;
     }
 
     /**
