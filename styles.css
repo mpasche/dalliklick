@@ -131,6 +131,9 @@ select:hover {
     display: grid;
     grid-template-columns: 20rem 1fr;
     grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "controls board"
+        "actions board";
     gap: 1rem;
 }
 
@@ -184,7 +187,7 @@ select:hover {
 
 /* --- Settings on the left --- */
 .controls {
-    grid-area: 1 / 1;
+    grid-area: controls;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -299,7 +302,7 @@ input[type="range"] {
 /* --- Game on the right --- */
 .game-panel {
     position: relative;
-    grid-area: 1 / 2 / 3 / 3;
+    grid-area: board;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -469,7 +472,7 @@ input[type="range"] {
 
 /* --- Game controls --- */
 .play-controls {
-    grid-area: 2 / 1;
+    grid-area: actions;
 }
 
 .play-icon {
@@ -536,6 +539,10 @@ input[type="range"] {
     .workspace {
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto auto auto;
+        grid-template-areas:
+            "controls"
+            "board"
+            "actions";
     }
 
     .page-header {
@@ -568,13 +575,9 @@ input[type="range"] {
         overflow-wrap: anywhere;
     }
 
-    .game-panel {
-        grid-area: 2 / 1;
-    }
-
     .empty-board {
         flex: none;
-        height: 75vh;
+        height: 75svh;
     }
 
     .board-area {
@@ -583,15 +586,14 @@ input[type="range"] {
     }
 
     .board-frame {
-        width: min(100cqw, (75vh - 3.75rem) * var(--aspect-ratio) + 1.75rem);
+        width: min(100cqw, (75svh - 3.75rem) * var(--aspect-ratio) + 1.75rem);
     }
 
     .board-frame[data-mode="effect"] {
-        width: min(100cqw, (75vh - 2rem) * var(--aspect-ratio));
+        width: min(100cqw, (75svh - 2rem) * var(--aspect-ratio));
     }
 
     .play-controls {
-        grid-area: 3 / 1;
         overflow-wrap: anywhere;
     }
 
