@@ -5,7 +5,7 @@
     const ERROR_NOTIFICATION_DURATION_MS = 6000;
 
     const elements = Object.fromEntries([
-        'app-version', 'theme', 'language',
+        'app-version', 'theme-control', 'language-control',
         'drop-zone', 'file-input',
         'mode-description',
         'grid-settings', 'rows', 'columns', 'grid-mode-description',
@@ -18,6 +18,8 @@
         'play-button', 'reveal-button', 'reset-button',
     ].map((id) => [id, document.getElementById(id)]));
 
+    const themeInputs = document.querySelectorAll('input[name="theme"]');
+    const languageInputs = document.querySelectorAll('input[name="language"]');
     const modeInputs = document.querySelectorAll('input[name="mode"]');
     const gridModeInputs = document.querySelectorAll('input[name="grid-mode"]');
 
@@ -80,30 +82,6 @@
     }
 
     /**
-     * Displays the loaded app version.
-     * @returns {void}
-     */
-    function initializeVersion() {
-        elements['app-version'].textContent = `v${APP_VERSION}`;
-    }
-
-    /**
-     * Populates grid selectors and slider limits from engine constants.
-     * @returns {void}
-     */
-    function initializeControls() {
-        for (let count = 1; count <= GameEngine.MAX_ROWS; count++) {
-            elements['rows'].append(new Option(String(count), String(count)));
-        }
-        for (let count = 1; count <= GameEngine.MAX_COLUMNS; count++) {
-            elements['columns'].append(new Option(String(count), String(count)));
-        }
-        elements['interval'].max = GameEngine.MAX_INTERVAL;
-        elements['effect-steps'].min = GameEngine.MIN_EFFECT_STEPS;
-        elements['effect-steps'].max = GameEngine.MAX_EFFECT_STEPS;
-    }
-
-    /**
      * Updates static UI text, document language, and accessible image/navigation labels.
      * @param {Language} language - Language for the document and UI labels.
      * @returns {void}
@@ -113,8 +91,10 @@
         document.querySelectorAll('[data-i18n]').forEach((element) => {
             element.textContent = I18n.translate(language, element.dataset.i18n);
         });
-        elements['image'].alt = I18n.translate(language, 'image.alt');
+        elements['theme-control'].setAttribute('aria-label', I18n.translate(language, 'theme.label'));
+        elements['language-control'].setAttribute('aria-label', I18n.translate(language, 'language.label'));
         elements['image-navigation'].setAttribute('aria-label', I18n.translate(language, 'image.navigation'));
+        elements['image'].alt = I18n.translate(language, 'image.alt');
     }
 
     /**
@@ -208,8 +188,12 @@
         const effectMode = game.mode === GameEngine.GameMode.EFFECT;
 
         document.documentElement.dataset.theme = session.theme;
-        elements['theme'].value = session.theme;
-        elements['language'].value = session.language;
+        themeInputs.forEach((input) => {
+            input.checked = input.value === session.theme;
+        });
+        languageInputs.forEach((input) => {
+            input.checked = input.value === session.language;
+        });
 
         elements['file-input'].disabled = loading;
 
@@ -477,90 +461,146 @@
         await changeImage(Session.adjacentImageIndex(session, direction));
     }
 
-    elements['theme'].addEventListener('change', (event) => {
-        updateSession((currentSession) =>
-            Session.changeTheme(currentSession, event.target.value));
-    });
-    elements['language'].addEventListener('change', (event) => {
-        updateSession((currentSession) =>
-            Session.changeLanguage(currentSession, event.target.value));
-    });
+    /**
+     * Displays the loaded app version.
+     * @returns {void}
+     */
+    function initializeVersion() {
+        elements['app-version'].textContent = `v${APP_VERSION}`;
+    }
 
-    window.addEventListener('dragover', (event) => event.preventDefault());
-    window.addEventListener('drop', (event) => event.preventDefault());
-    elements['drop-zone'].addEventListener('dragover', (event) => {
-        event.dataTransfer.dropEffect = 'copy';
-        elements['drop-zone'].classList.add('dragging');
-    });
-    elements['drop-zone'].addEventListener('dragleave', () => {
-        elements['drop-zone'].classList.remove('dragging');
-    });
-    elements['drop-zone'].addEventListener('drop', async (event) => {
-        elements['drop-zone'].classList.remove('dragging');
-        await loadFiles(Array.from(event.dataTransfer.files));
-    });
-    elements['file-input'].addEventListener('change', async (event) => {
-        const files = Array.from(event.target.files);
-        event.target.value = '';
-        await loadFiles(files);
-    });
-
-    modeInputs.forEach((input) => {
-        input.addEventListener('change', () => {
-            updateGame((currentGame) => GameEngine.changeMode(currentGame, input.value));
-        });
-    });
-
-    elements['rows'].addEventListener('change', (event) => {
-        updateGame((currentGame) => GameEngine.changeGrid(
-            currentGame, Number(event.target.value), currentGame.grid.columns));
-    });
-    elements['columns'].addEventListener('change', (event) => {
-        updateGame((currentGame) => GameEngine.changeGrid(
-            currentGame, currentGame.grid.rows, Number(event.target.value)));
-    });
-
-    gridModeInputs.forEach((input) => {
-        input.addEventListener('change', () => {
-            updateGame((currentGame) => GameEngine.changeGridMode(currentGame, input.value));
-        });
-    });
-
-    elements['effect'].addEventListener('change', (event) => {
-        updateGame((currentGame) =>
-            GameEngine.changeEffect(currentGame, event.target.value));
-    });
-    elements['effect-steps'].addEventListener('input', (event) => {
-        updateGame((currentGame) =>
-            GameEngine.changeEffectSteps(currentGame, Number(event.target.value)));
-    });
-
-    elements['interval'].addEventListener('input', (event) => {
-        updateGame((currentGame) =>
-            GameEngine.changeInterval(currentGame, Number(event.target.value)));
-    });
-
-    elements['tiles'].addEventListener('click', (event) => {
-        const button = event.target.closest('button[data-row]');
-        if (button && !button.disabled) {
-            updateGame((currentGame) => GameEngine.revealManually(
-                currentGame, Number(button.dataset.row), Number(button.dataset.column)));
+    /**
+     * Populates grid selectors and slider limits from engine constants.
+     * @returns {void}
+     */
+    function initializeControls() {
+        for (let count = 1; count <= GameEngine.MAX_ROWS; count++) {
+            elements['rows'].append(new Option(String(count), String(count)));
         }
-    });
+        for (let count = 1; count <= GameEngine.MAX_COLUMNS; count++) {
+            elements['columns'].append(new Option(String(count), String(count)));
+        }
+        elements['interval'].max = GameEngine.MAX_INTERVAL;
+        elements['effect-steps'].min = GameEngine.MIN_EFFECT_STEPS;
+        elements['effect-steps'].max = GameEngine.MAX_EFFECT_STEPS;
+    }
 
-    elements['previous-button'].addEventListener('click', async () => {
-        await navigateImage(-1);
-    });
-    elements['next-button'].addEventListener('click', async () => {
-        await navigateImage(1);
-    });
+    /**
+     * Registers theme and language selection handlers.
+     * @returns {void}
+     */
+    function initializePreferenceListeners() {
+        themeInputs.forEach((input) => {
+            input.addEventListener('change', () => {
+                updateSession((currentSession) =>
+                    Session.changeTheme(currentSession, input.value));
+            });
+        });
+        languageInputs.forEach((input) => {
+            input.addEventListener('change', () => {
+                updateSession((currentSession) =>
+                    Session.changeLanguage(currentSession, input.value));
+            });
+        });
+    }
 
-    elements['play-button'].addEventListener('click', () => updateGame(GameEngine.togglePause));
-    elements['reveal-button'].addEventListener('click', () => updateGame(GameEngine.revealAll));
-    elements['reset-button'].addEventListener('click', () => updateGame(GameEngine.resetGame));
+    /**
+     * Registers file selection and drag and drop handlers.
+     * @returns {void}
+     */
+    function initializeFileListeners() {
+        window.addEventListener('dragover', (event) => event.preventDefault());
+        window.addEventListener('drop', (event) => event.preventDefault());
+        elements['drop-zone'].addEventListener('dragover', (event) => {
+            event.dataTransfer.dropEffect = 'copy';
+            elements['drop-zone'].classList.add('dragging');
+        });
+        elements['drop-zone'].addEventListener('dragleave', () => {
+            elements['drop-zone'].classList.remove('dragging');
+        });
+        elements['drop-zone'].addEventListener('drop', async (event) => {
+            elements['drop-zone'].classList.remove('dragging');
+            await loadFiles(Array.from(event.dataTransfer.files));
+        });
+        elements['file-input'].addEventListener('change', async (event) => {
+            const files = Array.from(event.target.files);
+            event.target.value = '';
+            await loadFiles(files);
+        });
+    }
+
+    /**
+     * Registers game mode, grid, effect, and interval handlers.
+     * @returns {void}
+     */
+    function initializeGameSettingListeners() {
+        modeInputs.forEach((input) => {
+            input.addEventListener('change', () => {
+                updateGame((currentGame) => GameEngine.changeMode(currentGame, input.value));
+            });
+        });
+
+        elements['rows'].addEventListener('change', (event) => {
+            updateGame((currentGame) => GameEngine.changeGrid(
+                currentGame, Number(event.target.value), currentGame.grid.columns));
+        });
+        elements['columns'].addEventListener('change', (event) => {
+            updateGame((currentGame) => GameEngine.changeGrid(
+                currentGame, currentGame.grid.rows, Number(event.target.value)));
+        });
+
+        gridModeInputs.forEach((input) => {
+            input.addEventListener('change', () => {
+                updateGame((currentGame) => GameEngine.changeGridMode(currentGame, input.value));
+            });
+        });
+
+        elements['effect'].addEventListener('change', (event) => {
+            updateGame((currentGame) =>
+                GameEngine.changeEffect(currentGame, event.target.value));
+        });
+        elements['effect-steps'].addEventListener('input', (event) => {
+            updateGame((currentGame) =>
+                GameEngine.changeEffectSteps(currentGame, Number(event.target.value)));
+        });
+
+        elements['interval'].addEventListener('input', (event) => {
+            updateGame((currentGame) =>
+                GameEngine.changeInterval(currentGame, Number(event.target.value)));
+        });
+    }
+
+    /**
+     * Registers board, image navigation, and game action handlers.
+     * @returns {void}
+     */
+    function initializeGameActionListeners() {
+        elements['tiles'].addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-row]');
+            if (button && !button.disabled) {
+                updateGame((currentGame) => GameEngine.revealManually(
+                    currentGame, Number(button.dataset.row), Number(button.dataset.column)));
+            }
+        });
+
+        elements['previous-button'].addEventListener('click', async () => {
+            await navigateImage(-1);
+        });
+        elements['next-button'].addEventListener('click', async () => {
+            await navigateImage(1);
+        });
+
+        elements['play-button'].addEventListener('click', () => updateGame(GameEngine.togglePause));
+        elements['reveal-button'].addEventListener('click', () => updateGame(GameEngine.revealAll));
+        elements['reset-button'].addEventListener('click', () => updateGame(GameEngine.resetGame));
+    }
 
     initializeVersion();
     initializeControls();
+    initializePreferenceListeners();
+    initializeFileListeners();
+    initializeGameSettingListeners();
+    initializeGameActionListeners();
     renderLanguage(session.language);
     buildBoard(session.game);
     render(session, session);

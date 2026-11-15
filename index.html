@@ -25,20 +25,30 @@
             <span class="hint" id="app-version"></span>
         </h1>
         <div class="header-settings">
-            <label class="picker" for="theme">
-                <span data-i18n="theme.label">Theme</span>
-                <select id="theme">
-                    <option value="light" data-i18n="theme.light">Light</option>
-                    <option value="dark" data-i18n="theme.dark">Dark</option>
-                </select>
-            </label>
-            <label class="picker" for="language">
-                <span data-i18n="language.label">Language</span>
-                <select id="language">
-                    <option value="en">English</option>
-                    <option value="de">Deutsch</option>
-                </select>
-            </label>
+            <div class="picker">
+                <fieldset class="choice-group choice-group--segmented" id="theme-control" aria-label="Theme">
+                    <label>
+                        <input type="radio" name="theme" value="light">
+                        <span data-i18n="theme.light">Light</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="theme" value="dark">
+                        <span data-i18n="theme.dark">Dark</span>
+                    </label>
+                </fieldset>
+            </div>
+            <div class="picker">
+                <fieldset class="choice-group choice-group--segmented" id="language-control" aria-label="Language">
+                    <label>
+                        <input type="radio" name="language" value="de" aria-label="Deutsch">
+                        <span aria-hidden="true">DE</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="language" value="en" aria-label="English">
+                        <span aria-hidden="true">EN</span>
+                    </label>
+                </fieldset>
+            </div>
         </div>
     </header>
 
@@ -65,7 +75,7 @@
 
             <section class="panel">
                 <h2 id="mode-heading"><span class="step">02</span> <span data-i18n="mode.heading">Game mode</span></h2>
-                <fieldset class="mode-switch" aria-labelledby="mode-heading">
+                <fieldset class="choice-group" aria-labelledby="mode-heading">
                     <label>
                         <input
                                 type="radio"
@@ -101,7 +111,7 @@
                         </label>
                     </div>
                     <p class="hint" data-i18n="grid.hint">Changing the grid hides the image again.</p>
-                    <fieldset class="mode-switch" aria-labelledby="grid-heading">
+                    <fieldset class="choice-group" aria-labelledby="grid-heading">
                         <label>
                             <input
                                     type="radio"
