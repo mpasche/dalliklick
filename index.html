@@ -25,30 +25,26 @@
             <span class="hint" id="app-version"></span>
         </h1>
         <div class="header-settings">
-            <div class="picker">
-                <fieldset class="choice-group choice-group--segmented" id="theme-control" aria-label="Theme">
-                    <label>
-                        <input type="radio" name="theme" value="light">
-                        <span data-i18n="theme.light">Light</span>
-                    </label>
-                    <label>
-                        <input type="radio" name="theme" value="dark">
-                        <span data-i18n="theme.dark">Dark</span>
-                    </label>
-                </fieldset>
-            </div>
-            <div class="picker">
-                <fieldset class="choice-group choice-group--segmented" id="language-control" aria-label="Language">
-                    <label>
-                        <input type="radio" name="language" value="de" aria-label="Deutsch">
-                        <span aria-hidden="true">DE</span>
-                    </label>
-                    <label>
-                        <input type="radio" name="language" value="en" aria-label="English">
-                        <span aria-hidden="true">EN</span>
-                    </label>
-                </fieldset>
-            </div>
+            <fieldset class="choice-group choice-group--segmented">
+                <label>
+                    <input type="radio" name="theme" value="light">
+                    <span data-i18n="theme.light">Light</span>
+                </label>
+                <label>
+                    <input type="radio" name="theme" value="dark">
+                    <span data-i18n="theme.dark">Dark</span>
+                </label>
+            </fieldset>
+            <fieldset class="choice-group choice-group--segmented">
+                <label>
+                    <input type="radio" name="language" value="de">
+                    <span>DE</span>
+                </label>
+                <label>
+                    <input type="radio" name="language" value="en">
+                    <span>EN</span>
+                </label>
+            </fieldset>
         </div>
     </header>
 
@@ -56,41 +52,23 @@
         <aside class="controls">
             <section class="panel">
                 <h2><span class="step">01</span> <span data-i18n="image.heading">Images</span></h2>
-                <label
-                        class="upload-zone"
-                        id="drop-zone"
-                        for="file-input"
-                >
+                <label class="upload-zone" id="drop-zone" for="file-input">
                     <strong data-i18n="image.select">Choose images</strong>
                     <span data-i18n="image.drop">or drag and drop them here</span>
-                    <input
-                            id="file-input"
-                            type="file"
-                            accept="image/*"
-                            multiple
-                    >
+                    <input id="file-input" type="file" accept="image/*" multiple>
                 </label>
                 <p class="hint" data-i18n="image.privacy">Your images stay on your device.</p>
             </section>
 
             <section class="panel">
-                <h2 id="mode-heading"><span class="step">02</span> <span data-i18n="mode.heading">Game mode</span></h2>
-                <fieldset class="choice-group" aria-labelledby="mode-heading">
+                <h2><span class="step">02</span> <span data-i18n="mode.heading">Game mode</span></h2>
+                <fieldset class="choice-group">
                     <label>
-                        <input
-                                type="radio"
-                                name="mode"
-                                value="grid"
-                                checked
-                        >
+                        <input type="radio" name="mode" value="grid" checked>
                         <span data-i18n="mode.grid">Grid</span>
                     </label>
                     <label>
-                        <input
-                                type="radio"
-                                name="mode"
-                                value="effect"
-                        >
+                        <input type="radio" name="mode" value="effect">
                         <span data-i18n="mode.effect">Effect</span>
                     </label>
                 </fieldset>
@@ -99,7 +77,7 @@
 
             <section class="panel">
                 <div id="grid-settings">
-                    <h2 id="grid-heading"><span class="step">03</span> <span data-i18n="grid.heading">Grid</span></h2>
+                    <h2><span class="step">03</span> <span data-i18n="grid.heading">Grid</span></h2>
                     <div class="grid-size">
                         <label for="rows">
                             <span data-i18n="grid.rows">Rows</span>
@@ -111,64 +89,44 @@
                         </label>
                     </div>
                     <p class="hint" data-i18n="grid.hint">Changing the grid hides the image again.</p>
-                    <fieldset class="choice-group" aria-labelledby="grid-heading">
+                    <fieldset class="choice-group">
                         <label>
-                            <input
-                                    type="radio"
-                                    name="grid-mode"
-                                    value="manual"
-                                    checked
-                            >
-                            <span
-                                    data-i18n="gridMode.manual">Manual</span></label>
+                            <input type="radio" name="grid-mode" value="manual" checked>
+                            <span data-i18n="gridMode.manual">Manual</span>
+                        </label>
                         <label>
-                            <input
-                                    type="radio"
-                                    name="grid-mode"
-                                    value="random"
-                            >
+                            <input type="radio" name="grid-mode" value="random">
                             <span data-i18n="gridMode.random">Random</span>
                         </label>
                     </fieldset>
                     <p class="hint" id="grid-mode-description">Click a tile to reveal it.</p>
                 </div>
                 <div id="effect-settings" hidden>
-                    <h2 id="effect-heading"><span class="step">03</span> <span data-i18n="effect.heading">Effect</span>
-                    </h2>
-                    <div class="effect-select">
-                        <label for="effect"></label><select id="effect" aria-labelledby="effect-heading">
+                    <h2><span class="step">03</span> <label for="effect" data-i18n="effect.heading">Effect</label></h2>
+                    <select id="effect">
                         <option value="blur" data-i18n="effect.blur">Blur</option>
                         <option value="distort" data-i18n="effect.distort">Distort</option>
                         <option value="zoom" data-i18n="effect.zoom">Zoom</option>
                         <option value="swirl" data-i18n="effect.swirl">Swirl</option>
                     </select>
-                    </div>
                     <label class="range-label" for="effect-steps">
                         <span data-i18n="effect.steps">Steps</span>
                         <output id="effect-steps-text" for="effect-steps">50</output>
                     </label>
                     <input id="effect-steps" type="range">
                 </div>
-                <div
-                        class="automatic-settings"
-                        id="automatic-settings"
-                        hidden
-                >
+                <div class="automatic-settings" id="automatic-settings" hidden>
                     <label class="range-label" for="interval">
                         <span id="interval-name">One tile every</span>
                         <output id="interval-text" for="interval">1 second</output>
                     </label>
-                    <input
-                            id="interval"
-                            type="range"
-                            min="1"
-                    >
+                    <input id="interval" type="range" min="1">
                 </div>
             </section>
         </aside>
 
         <section class="game-panel">
-            <div class="notification" id="notification" role="status" aria-live="polite" aria-atomic="true">
+            <div class="notification" id="notification">
                 <p class="message" id="message"></p>
             </div>
             <div class="empty-board" id="empty-board">
@@ -176,34 +134,26 @@
                 <h2 data-i18n="image.select">Choose images</h2>
                 <p class="hint" data-i18n="image.privacy">Your images stay on your device.</p>
             </div>
-            <div
-                    class="board-area"
-                    id="board-area"
-                    hidden
-            >
+            <div class="board-area" id="board-area" hidden>
                 <div class="board-frame" id="board-frame">
                     <div class="column-labels" id="column-labels"></div>
                     <div class="row-labels" id="row-labels"></div>
                     <div class="board" id="board">
-                        <img
-                                id="image"
-                                draggable="false"
-                                alt="Your uploaded image"
-                        >
+                        <img id="image" draggable="false" alt="Your uploaded image">
                         <canvas id="swirl-canvas"></canvas>
                         <div class="tiles" id="tiles"></div>
                     </div>
                 </div>
             </div>
-            <nav class="image-navigation" id="image-navigation" aria-label="Image navigation" hidden>
+            <nav class="image-navigation" id="image-navigation" hidden>
                 <button class="button" id="previous-button" data-i18n="button.previous" disabled>Previous</button>
                 <span id="image-position"></span>
                 <button class="button" id="next-button" data-i18n="button.next" disabled>Next</button>
             </nav>
         </section>
-        <section class="panel play-controls" aria-labelledby="play-heading">
-            <h2 id="play-heading">
-                <svg class="step play-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <section class="panel play-controls">
+            <h2>
+                <svg class="step play-icon" viewBox="0 0 24 24">
                     <path d="M6 3v18l15-9z"/>
                 </svg>
                 <span data-i18n="play.heading">Game controls</span>

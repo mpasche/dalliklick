@@ -7,16 +7,13 @@ const I18n = (() => {
 
     const translations = {
         de: {
-            'theme.label': 'Design',
             'theme.light': 'Hell',
             'theme.dark': 'Dunkel',
-            'language.label': 'Sprache',
             'image.heading': 'Bilder',
             'image.select': 'Bilder auswählen',
             'image.drop': 'oder hier hineinziehen',
             'image.privacy': 'Deine Bilder bleiben auf deinem Gerät.',
             'image.position': 'Bild {index} von {total}',
-            'image.navigation': 'Bildnavigation',
             'image.alt': 'Dein hochgeladenes Bild',
             'mode.heading': 'Spielmodus',
             'mode.grid': 'Raster',
@@ -70,16 +67,13 @@ const I18n = (() => {
             'error.interval': 'Ungültiges Zeitintervall',
         },
         en: {
-            'theme.label': 'Theme',
             'theme.light': 'Light',
             'theme.dark': 'Dark',
-            'language.label': 'Language',
             'image.heading': 'Images',
             'image.select': 'Choose images',
             'image.drop': 'or drag and drop them here',
             'image.privacy': 'Your images stay on your device.',
             'image.position': 'Image {index} of {total}',
-            'image.navigation': 'Image navigation',
             'image.alt': 'Your uploaded image',
             'mode.heading': 'Game mode',
             'mode.grid': 'Grid',

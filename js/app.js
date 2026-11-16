@@ -5,7 +5,7 @@
     const ERROR_NOTIFICATION_DURATION_MS = 6000;
 
     const elements = Object.fromEntries([
-        'app-version', 'theme-control', 'language-control',
+        'app-version',
         'drop-zone', 'file-input',
         'mode-description',
         'grid-settings', 'rows', 'columns', 'grid-mode-description',
@@ -82,7 +82,7 @@
     }
 
     /**
-     * Updates static UI text, document language, and accessible image/navigation labels.
+     * Updates static UI text, document language, and image alternative text.
      * @param {Language} language - Language for the document and UI labels.
      * @returns {void}
      */
@@ -91,9 +91,6 @@
         document.querySelectorAll('[data-i18n]').forEach((element) => {
             element.textContent = I18n.translate(language, element.dataset.i18n);
         });
-        elements['theme-control'].setAttribute('aria-label', I18n.translate(language, 'theme.label'));
-        elements['language-control'].setAttribute('aria-label', I18n.translate(language, 'language.label'));
-        elements['image-navigation'].setAttribute('aria-label', I18n.translate(language, 'image.navigation'));
         elements['image'].alt = I18n.translate(language, 'image.alt');
     }
 
@@ -135,7 +132,6 @@
                 button.className = 'tile';
                 button.dataset.row = String(row);
                 button.dataset.column = String(column);
-                button.setAttribute('aria-label', label.textContent);
                 button.append(label);
                 elements['tiles'].append(button);
             }

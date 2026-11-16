@@ -173,15 +173,16 @@ select:hover {
 }
 
 .header-settings {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 20rem;
     gap: 1rem;
     margin-left: auto;
 }
 
-.picker {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
+.header-settings .choice-group {
+    width: 100%;
+    min-width: 0;
     color: var(--muted);
 }
 
@@ -235,6 +236,7 @@ select:hover {
 }
 
 .choice-group--segmented label {
+    flex: 1;
     padding: .25rem .5rem;
 }
 
@@ -306,14 +308,10 @@ select:hover {
     margin-top: 1rem;
 }
 
-.effect-select {
-    display: block;
-    margin-bottom: .75rem;
-}
-
-.effect-select select {
+#effect {
     display: block;
     width: 100%;
+    margin-bottom: .75rem;
 }
 
 .automatic-settings {
@@ -594,16 +592,6 @@ input[type="range"] {
         width: 100%;
         max-width: 24rem;
         margin: 0;
-    }
-
-    .header-settings .picker {
-        flex-direction: column;
-        align-items: stretch;
-        min-width: 0;
-    }
-
-    .choice-group--segmented label {
-        flex: 1;
     }
 
     .controls {
