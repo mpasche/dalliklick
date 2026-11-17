@@ -49,30 +49,30 @@
     </header>
 
     <div class="workspace">
-        <aside class="controls">
+        <aside class="game-settings">
             <section class="panel">
                 <h2><span class="step">01</span> <span data-i18n="image.heading">Images</span></h2>
-                <label class="upload-zone" id="drop-zone" for="file-input">
-                    <strong data-i18n="image.select">Choose images</strong>
-                    <span data-i18n="image.drop">or drag and drop them here</span>
+                <label class="image-upload" id="image-upload" for="file-input">
+                    <strong data-i18n="image-upload.select">Choose images</strong>
+                    <span data-i18n="image-upload.drop">or drag and drop them here</span>
                     <input id="file-input" type="file" accept="image/*" multiple>
                 </label>
-                <p class="hint" data-i18n="image.privacy">Your images stay on your device.</p>
+                <p class="hint" data-i18n="image-upload.privacy">Your images stay on your device.</p>
             </section>
 
             <section class="panel">
-                <h2><span class="step">02</span> <span data-i18n="mode.heading">Game mode</span></h2>
+                <h2><span class="step">02</span> <span data-i18n="game-mode.heading">Game mode</span></h2>
                 <fieldset class="choice-group">
                     <label>
-                        <input type="radio" name="mode" value="grid" checked>
-                        <span data-i18n="mode.grid">Grid</span>
+                        <input type="radio" name="game-mode" value="grid" checked>
+                        <span data-i18n="game-mode.grid">Grid</span>
                     </label>
                     <label>
-                        <input type="radio" name="mode" value="effect">
-                        <span data-i18n="mode.effect">Effect</span>
+                        <input type="radio" name="game-mode" value="effect">
+                        <span data-i18n="game-mode.effect">Effect</span>
                     </label>
                 </fieldset>
-                <p class="hint" id="mode-description">Tiles hide the image and are revealed one by one.</p>
+                <p class="hint" id="game-mode-hint">Tiles hide the image and are revealed one by one.</p>
             </section>
 
             <section class="panel">
@@ -92,14 +92,14 @@
                     <fieldset class="choice-group">
                         <label>
                             <input type="radio" name="grid-mode" value="manual" checked>
-                            <span data-i18n="gridMode.manual">Manual</span>
+                            <span data-i18n="grid-mode.manual">Manual</span>
                         </label>
                         <label>
                             <input type="radio" name="grid-mode" value="random">
-                            <span data-i18n="gridMode.random">Random</span>
+                            <span data-i18n="grid-mode.random">Random</span>
                         </label>
                     </fieldset>
-                    <p class="hint" id="grid-mode-description">Click a tile to reveal it.</p>
+                    <p class="hint" id="grid-mode-hint">Click a tile to reveal it.</p>
                 </div>
                 <div id="effect-settings" hidden>
                     <h2><span class="step">03</span> <label for="effect" data-i18n="effect.heading">Effect</label></h2>
@@ -131,8 +131,8 @@
             </div>
             <div class="empty-board" id="empty-board">
                 <div class="logo"></div>
-                <h2 data-i18n="image.select">Choose images</h2>
-                <p class="hint" data-i18n="image.privacy">Your images stay on your device.</p>
+                <h2 data-i18n="image-upload.select">Choose images</h2>
+                <p class="hint" data-i18n="image-upload.privacy">Your images stay on your device.</p>
             </div>
             <div class="board-area" id="board-area" hidden>
                 <div class="board-frame" id="board-frame">
@@ -151,15 +151,18 @@
                 <button class="button" id="next-button" data-i18n="button.next" disabled>Next</button>
             </nav>
         </section>
-        <section class="panel play-controls">
-            <h2>
-                <svg class="step play-icon" viewBox="0 0 24 24">
-                    <path d="M6 3v18l15-9z"/>
-                </svg>
-                <span data-i18n="play.heading">Game controls</span>
-            </h2>
+        <section class="panel game-controls">
+            <header class="game-controls-heading">
+                <h2>
+                    <svg class="step play-icon" viewBox="0 0 24 24">
+                        <path d="M6 3v18l15-9z"/>
+                    </svg>
+                    <span data-i18n="game-controls.heading">Game controls</span>
+                </h2>
+                <button type="button" class="progress-toggle" id="progress-toggle" hidden></button>
+            </header>
             <button class="button primary" id="play-button" disabled hidden>Start</button>
-            <div class="round-actions">
+            <div class="game-controls-actions">
                 <button class="button" id="reveal-button" data-i18n="button.reveal" disabled>Reveal</button>
                 <button class="button" id="reset-button" data-i18n="button.reset" disabled>Reset</button>
             </div>

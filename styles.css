@@ -54,7 +54,7 @@ button:disabled {
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
-.upload-zone:has(input:focus-visible),
+.image-upload:has(input:focus-visible),
 .choice-group label:has(input:focus-visible) {
     outline: 2px solid var(--accent);
     outline-offset: .25rem;
@@ -130,8 +130,8 @@ select:hover {
     grid-template-columns: 20rem 1fr;
     grid-template-rows: minmax(0, 1fr) auto;
     grid-template-areas:
-        "controls board"
-        "actions board";
+        "game-settings board"
+        "game-controls board";
     min-height: 0;
     flex: 1;
     gap: 1rem;
@@ -246,8 +246,8 @@ select:hover {
 }
 
 /* --- Settings on the left --- */
-.controls {
-    grid-area: controls;
+.game-settings {
+    grid-area: game-settings;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -255,7 +255,7 @@ select:hover {
     gap: 1rem;
 }
 
-.upload-zone {
+.image-upload {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -267,20 +267,20 @@ select:hover {
     cursor: pointer;
 }
 
-.upload-zone:hover,
-.upload-zone.dragging {
+.image-upload:hover,
+.image-upload.dragging {
     border-color: var(--accent);
 }
 
-.upload-zone > * {
+.image-upload > * {
     pointer-events: none;
 }
 
-.upload-zone strong {
+.image-upload strong {
     color: var(--text);
 }
 
-.upload-zone input {
+.image-upload input {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -502,8 +502,39 @@ input[type="range"] {
 }
 
 /* --- Game controls --- */
-.play-controls {
-    grid-area: actions;
+.game-controls {
+    grid-area: game-controls;
+}
+
+.game-controls-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: .75rem;
+}
+
+.game-controls-heading h2 {
+    margin: 0;
+}
+
+.progress-toggle {
+    flex-shrink: 0;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    margin: -.5rem 0;
+    padding: 0 .25rem;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    text-decoration: underline dotted;
+    text-underline-offset: .25em;
+    white-space: nowrap;
+}
+
+.progress-toggle:hover {
+    color: var(--text);
 }
 
 .play-icon {
@@ -517,7 +548,7 @@ input[type="range"] {
     margin-bottom: .5rem;
 }
 
-.round-actions {
+.game-controls-actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: .5rem;
@@ -571,9 +602,9 @@ input[type="range"] {
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto auto auto;
         grid-template-areas:
-            "controls"
+            "game-settings"
             "board"
-            "actions";
+            "game-controls";
     }
 
     .page-header {
@@ -594,7 +625,7 @@ input[type="range"] {
         margin: 0;
     }
 
-    .controls {
+    .game-settings {
         min-width: 0;
         overflow-y: visible;
         overflow-wrap: anywhere;
@@ -618,7 +649,7 @@ input[type="range"] {
         width: min(100cqw, (75svh - 2rem) * var(--aspect-ratio));
     }
 
-    .play-controls {
+    .game-controls {
         overflow-wrap: anywhere;
     }
 

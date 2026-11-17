@@ -6,21 +6,21 @@
 
     const elements = Object.fromEntries([
         'app-version',
-        'drop-zone', 'file-input',
-        'mode-description',
-        'grid-settings', 'rows', 'columns', 'grid-mode-description',
+        'image-upload', 'file-input',
+        'game-mode-hint',
+        'grid-settings', 'rows', 'columns', 'grid-mode-hint',
         'effect-settings', 'effect', 'effect-steps', 'effect-steps-text',
         'automatic-settings', 'interval-name', 'interval', 'interval-text',
         'notification', 'message',
         'empty-board', 'board-area', 'board-frame', 'column-labels', 'row-labels',
         'board', 'image', 'swirl-canvas', 'tiles', 'distort-map',
         'image-navigation', 'previous-button', 'image-position', 'next-button',
-        'play-button', 'reveal-button', 'reset-button',
+        'progress-toggle', 'play-button', 'reveal-button', 'reset-button',
     ].map((id) => [id, document.getElementById(id)]));
 
     const themeInputs = document.querySelectorAll('input[name="theme"]');
     const languageInputs = document.querySelectorAll('input[name="language"]');
-    const modeInputs = document.querySelectorAll('input[name="mode"]');
+    const gameModeInputs = document.querySelectorAll('input[name="game-mode"]');
     const gridModeInputs = document.querySelectorAll('input[name="grid-mode"]');
 
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -193,12 +193,12 @@
 
         elements['file-input'].disabled = loading;
 
-        modeInputs.forEach((input) => {
+        gameModeInputs.forEach((input) => {
             input.checked = input.value === game.mode;
             input.disabled = loading;
         });
-        elements['mode-description'].textContent = I18n.translate(session.language,
-            `mode.${game.mode}Hint`);
+        elements['game-mode-hint'].textContent = I18n.translate(session.language,
+            `game-mode.${game.mode}-hint`);
 
         elements['grid-settings'].hidden = effectMode;
         elements['rows'].value = game.grid.rows;
@@ -209,8 +209,8 @@
             input.checked = input.value === game.grid.mode;
             input.disabled = loading;
         });
-        elements['grid-mode-description'].textContent = I18n.translate(session.language,
-            `gridMode.${game.grid.mode}Hint`);
+        elements['grid-mode-hint'].textContent = I18n.translate(session.language,
+            `grid-mode.${game.grid.mode}-hint`);
         elements['effect-settings'].hidden = !effectMode;
         elements['effect'].value = game.effect.type;
         elements['effect'].disabled = loading;
@@ -281,6 +281,7 @@
         const state = GameEngine.gameState(game);
         const noImage = state === GameEngine.GameState.NO_IMAGE;
         const completed = state === GameEngine.GameState.COMPLETED;
+        const {completed: completedCount, total} = GameEngine.gameProgress(game);
 
         elements['image-navigation'].hidden = noImage || session.selection.images.length <= 1;
         elements['previous-button'].disabled = loading || noImage || session.selection.images.length <= 1;
@@ -288,10 +289,19 @@
         elements['image-position'].textContent = I18n.translate(session.language, 'image.position',
             {index: session.selection.index + 1, total: session.selection.images.length});
 
-        elements['play-button'].textContent = I18n.translate(session.language,
-            GameEngine.isAutoRunning(game) ? 'button.pause' : 'button.start');
+        elements['progress-toggle'].hidden = noImage;
+        elements['progress-toggle'].title = I18n.translate(session.language, 'progress-toggle.title');
+        elements['progress-toggle'].textContent = session.progressAsPercent
+            ? new Intl.NumberFormat(session.language,
+                {style: 'percent', maximumFractionDigits: 0})
+                .format(Math.min(completedCount / total, completed ? 1 : 0.99))
+            : `${completedCount}/${total}`;
+
         elements['play-button'].hidden = !GameEngine.isAutomatic(game);
         elements['play-button'].disabled = loading || noImage || completed;
+        elements['play-button'].textContent = I18n.translate(session.language,
+            GameEngine.isAutoRunning(game) ? 'button.pause' : 'button.start');
+
         elements['reveal-button'].disabled = loading || noImage || completed;
         elements['reset-button'].disabled = loading || noImage;
     }
@@ -389,7 +399,7 @@
         for (let index = 0; index < files.length; index++) {
             const file = files[index];
             if (!file || typeof file.type !== 'string' || !file.type.startsWith('image/')) {
-                abortUpload(urls, new Error('The selected file is not an image.'), 'error.uploadType');
+                abortUpload(urls, new Error('The selected file is not an image.'), 'error.upload-type');
                 return;
             }
             try {
@@ -401,7 +411,7 @@
                     firstPixels = prepared.pixels;
                 }
             } catch (error) {
-                abortUpload(urls, error, 'error.uploadDecode');
+                abortUpload(urls, error, 'error.upload-decode');
                 return;
             }
         }
@@ -409,7 +419,7 @@
         const previousImages = session.selection.images;
         const nextSession = Session.finishUpload(session, images);
         if (nextSession.selection.images === previousImages) {
-            abortUpload(urls, new Error('Invalid image selection.'), 'error.uploadDecode');
+            abortUpload(urls, new Error('Invalid image selection.'), 'error.upload-decode');
             return;
         }
 
@@ -438,7 +448,7 @@
             prepared = await prepareImage(session.selection.images[index].url);
         } catch (error) {
             console.error('Image could not be activated.', error);
-            updateSession((currentSession) => Session.failImageLoading(currentSession, 'error.imageChange'));
+            updateSession((currentSession) => Session.failImageLoading(currentSession, 'error.image-change'));
             return;
         }
         pixelCache = prepared.pixels;
@@ -482,7 +492,7 @@
     }
 
     /**
-     * Registers theme and language selection handlers.
+     * Registers theme, language, and progress format handlers.
      * @returns {void}
      */
     function initializePreferenceListeners() {
@@ -498,6 +508,8 @@
                     Session.changeLanguage(currentSession, input.value));
             });
         });
+        elements['progress-toggle'].addEventListener('click', () =>
+            updateSession(Session.toggleProgressFormat));
     }
 
     /**
@@ -507,15 +519,15 @@
     function initializeFileListeners() {
         window.addEventListener('dragover', (event) => event.preventDefault());
         window.addEventListener('drop', (event) => event.preventDefault());
-        elements['drop-zone'].addEventListener('dragover', (event) => {
+        elements['image-upload'].addEventListener('dragover', (event) => {
             event.dataTransfer.dropEffect = 'copy';
-            elements['drop-zone'].classList.add('dragging');
+            elements['image-upload'].classList.add('dragging');
         });
-        elements['drop-zone'].addEventListener('dragleave', () => {
-            elements['drop-zone'].classList.remove('dragging');
+        elements['image-upload'].addEventListener('dragleave', () => {
+            elements['image-upload'].classList.remove('dragging');
         });
-        elements['drop-zone'].addEventListener('drop', async (event) => {
-            elements['drop-zone'].classList.remove('dragging');
+        elements['image-upload'].addEventListener('drop', async (event) => {
+            elements['image-upload'].classList.remove('dragging');
             await loadFiles(Array.from(event.dataTransfer.files));
         });
         elements['file-input'].addEventListener('change', async (event) => {
@@ -530,7 +542,7 @@
      * @returns {void}
      */
     function initializeGameSettingListeners() {
-        modeInputs.forEach((input) => {
+        gameModeInputs.forEach((input) => {
             input.addEventListener('change', () => {
                 updateGame((currentGame) => GameEngine.changeMode(currentGame, input.value));
             });

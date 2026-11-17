@@ -10,6 +10,7 @@
  * @typedef {Object} SessionState
  * @property {"light" | "dark"} theme
  * @property {Language} language
+ * @property {boolean} progressAsPercent
  * @property {Game} game
  * @property {ImageSelection} selection
  * @property {"idle" | "loading"} upload - Whether images are being loaded or changed.
@@ -30,6 +31,7 @@ const Session = (() => {
         return {
             theme,
             language,
+            progressAsPercent: false,
             game: GameEngine.createGame(),
             selection: {images: [], index: 0},
             upload: UploadState.IDLE,
@@ -69,6 +71,14 @@ const Session = (() => {
 
     /**
      * @param {SessionState} session
+     * @returns {SessionState} Session with the progress display format toggled.
+     */
+    function toggleProgressFormat(session) {
+        return {...session, progressAsPercent: !session.progressAsPercent};
+    }
+
+    /**
+     * @param {SessionState} session
      * @param {File[]} files - Selected files.
      * @returns {SessionState} Loading session with automatic reveal paused;
      * an empty selection sets an error.
@@ -78,13 +88,13 @@ const Session = (() => {
             return session;
         }
         if (!files || files.length === 0) {
-            return {...session, notification: Notification.error('error.fileCount')};
+            return {...session, notification: Notification.error('error.file-count')};
         }
         return {
             ...session,
             game: GameEngine.pauseGame(session.game),
             upload: UploadState.LOADING,
-            notification: Notification.info('message.preparing'),
+            notification: Notification.info('message.images-preparing'),
         };
     }
 
@@ -99,7 +109,7 @@ const Session = (() => {
             return session;
         }
         if (!images || images.length === 0 || !images.every(GameEngine.isValidImage)) {
-            return failImageLoading(session, 'error.uploadDecode');
+            return failImageLoading(session, 'error.upload-decode');
         }
         return {
             ...session,
@@ -140,13 +150,13 @@ const Session = (() => {
             return session;
         }
         if (!Number.isInteger(index) || index < 0 || index >= session.selection.images.length) {
-            return {...session, notification: Notification.error('error.imageIndex')};
+            return {...session, notification: Notification.error('error.image-index')};
         }
         return {
             ...session,
             game: GameEngine.pauseGame(session.game),
             upload: UploadState.LOADING,
-            notification: Notification.info('message.loading'),
+            notification: Notification.info('message.image-loading'),
         };
     }
 
@@ -161,7 +171,7 @@ const Session = (() => {
             return session;
         }
         if (!Number.isInteger(index) || index < 0 || index >= session.selection.images.length) {
-            return failImageLoading(session, 'error.imageIndex');
+            return failImageLoading(session, 'error.image-index');
         }
         return {
             ...session,
@@ -208,6 +218,7 @@ const Session = (() => {
         createSession,
         changeTheme,
         changeLanguage,
+        toggleProgressFormat,
         beginUpload,
         finishUpload,
         failImageLoading,
