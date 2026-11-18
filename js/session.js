@@ -6,11 +6,18 @@
  */
 
 /**
- * App preferences, selected images, and current game.
- * @typedef {Object} SessionState
+ * User preferences.
+ * @typedef {Object} Preferences
  * @property {"light" | "dark"} theme
  * @property {Language} language
+ * @property {boolean} randomImportOrder
  * @property {boolean} progressAsPercent
+ */
+
+/**
+ * App preferences, selected images, and current game.
+ * @typedef {Object} SessionState
+ * @property {Preferences} preferences
  * @property {Game} game
  * @property {ImageSelection} selection
  * @property {"idle" | "loading"} upload - Whether images are being loaded or changed.
@@ -23,15 +30,18 @@ const Session = (() => {
     const UploadState = Object.freeze({IDLE: 'idle', LOADING: 'loading'});
 
     /**
-     * @param {SessionState["theme"]} theme - Initial theme.
+     * @param {Preferences["theme"]} theme - Initial theme.
      * @param {Language} [language] - Initial language; defaults to English.
      * @returns {SessionState} New session with the given preferences.
      */
     function createSession(theme, language = I18n.Language.EN) {
         return {
-            theme,
-            language,
-            progressAsPercent: false,
+            preferences: {
+                theme,
+                language,
+                randomImportOrder: false,
+                progressAsPercent: false,
+            },
             game: GameEngine.createGame(),
             selection: {images: [], index: 0},
             upload: UploadState.IDLE,
@@ -41,17 +51,21 @@ const Session = (() => {
 
     /**
      * @param {SessionState} session
-     * @param {SessionState["theme"]} theme - New theme.
+     * @param {Preferences["theme"]} theme - New theme.
      * @returns {SessionState} Session with the new theme; invalid themes set an error.
      */
     function changeTheme(session, theme) {
         if (!Object.values(Theme).includes(theme)) {
             return {...session, notification: Notification.error('error.theme')};
         }
-        if (theme === session.theme && !session.notification?.error) {
+        if (theme === session.preferences.theme && !session.notification?.error) {
             return session;
         }
-        return {...session, theme, notification: session.notification?.error ? null : session.notification};
+        return {
+            ...session,
+            preferences: {...session.preferences, theme},
+            notification: session.notification?.error ? null : session.notification,
+        };
     }
 
     /**
@@ -63,10 +77,28 @@ const Session = (() => {
         if (!Object.values(I18n.Language).includes(language)) {
             return {...session, notification: Notification.error('error.language')};
         }
-        if (language === session.language && !session.notification?.error) {
+        if (language === session.preferences.language && !session.notification?.error) {
             return session;
         }
-        return {...session, language, notification: session.notification?.error ? null : session.notification};
+        return {
+            ...session,
+            preferences: {...session.preferences, language},
+            notification: session.notification?.error ? null : session.notification,
+        };
+    }
+
+    /**
+     * @param {SessionState} session
+     * @returns {SessionState} Session with the order for future imports toggled.
+     */
+    function toggleImportOrder(session) {
+        if (session.upload === UploadState.LOADING) {
+            return session;
+        }
+        return {
+            ...session,
+            preferences: {...session.preferences, randomImportOrder: !session.preferences.randomImportOrder},
+        };
     }
 
     /**
@@ -74,7 +106,10 @@ const Session = (() => {
      * @returns {SessionState} Session with the progress display format toggled.
      */
     function toggleProgressFormat(session) {
-        return {...session, progressAsPercent: !session.progressAsPercent};
+        return {
+            ...session,
+            preferences: {...session.preferences, progressAsPercent: !session.preferences.progressAsPercent},
+        };
     }
 
     /**
@@ -218,6 +253,7 @@ const Session = (() => {
         createSession,
         changeTheme,
         changeLanguage,
+        toggleImportOrder,
         toggleProgressFormat,
         beginUpload,
         finishUpload,

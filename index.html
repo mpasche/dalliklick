@@ -51,7 +51,21 @@
     <div class="workspace">
         <aside class="game-settings">
             <section class="panel">
-                <h2><span class="step">01</span> <span data-i18n="image.heading">Images</span></h2>
+                <header class="panel-heading">
+                    <h2><span class="step">01</span> <span data-i18n="image.heading">Images</span></h2>
+                    <button type="button" class="import-order-toggle" id="import-order-toggle">
+                        <span id="import-order-name-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M7 4 V20 M3 16 L7 20 L11 16 M14 5 H21 M14 11 H19 M14 17 H17"/>
+                            </svg>
+                        </span>
+                        <span id="import-order-random-icon" hidden>
+                            <svg viewBox="0 0 24 24">
+                                <path d="M3 6 H6 L18 18 H21 M17 14 L21 18 L17 22 M3 18 H6 L18 6 H21 M17 2 L21 6 L17 10"/>
+                            </svg>
+                        </span>
+                    </button>
+                </header>
                 <label class="image-upload" id="image-upload" for="file-input">
                     <strong data-i18n="image-upload.select">Choose images</strong>
                     <span data-i18n="image-upload.drop">or drag and drop them here</span>
@@ -152,10 +166,10 @@
             </nav>
         </section>
         <section class="panel game-controls">
-            <header class="game-controls-heading">
+            <header class="panel-heading">
                 <h2>
                     <svg class="step play-icon" viewBox="0 0 24 24">
-                        <path d="M6 3v18l15-9z"/>
+                        <path d="M6 3 V21 L21 12 Z"/>
                     </svg>
                     <span data-i18n="game-controls.heading">Game controls</span>
                 </h2>

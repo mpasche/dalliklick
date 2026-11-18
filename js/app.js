@@ -6,6 +6,7 @@
 
     const elements = Object.fromEntries([
         'app-version',
+        'import-order-toggle', 'import-order-name-icon', 'import-order-random-icon',
         'image-upload', 'file-input',
         'game-mode-hint',
         'grid-settings', 'rows', 'columns', 'grid-mode-hint',
@@ -157,8 +158,8 @@
     function render(currentSession, previousSession) {
         const currentGame = currentSession.game;
         const previousGame = previousSession.game;
-        if (previousSession.language !== currentSession.language) {
-            renderLanguage(currentSession.language);
+        if (previousSession.preferences.language !== currentSession.preferences.language) {
+            renderLanguage(currentSession.preferences.language);
         }
         if (previousGame.image !== currentGame.image ||
             previousGame.grid.rows !== currentGame.grid.rows ||
@@ -183,21 +184,26 @@
         const automatic = GameEngine.isAutomatic(game);
         const effectMode = game.mode === GameEngine.GameMode.EFFECT;
 
-        document.documentElement.dataset.theme = session.theme;
+        document.documentElement.dataset.theme = session.preferences.theme;
         themeInputs.forEach((input) => {
-            input.checked = input.value === session.theme;
+            input.checked = input.value === session.preferences.theme;
         });
         languageInputs.forEach((input) => {
-            input.checked = input.value === session.language;
+            input.checked = input.value === session.preferences.language;
         });
 
+        elements['import-order-toggle'].disabled = loading;
+        elements['import-order-toggle'].title = I18n.translate(session.preferences.language,
+            session.preferences.randomImportOrder ? 'import-order.random-hint' : 'import-order.name-hint');
+        elements['import-order-name-icon'].hidden = session.preferences.randomImportOrder;
+        elements['import-order-random-icon'].hidden = !session.preferences.randomImportOrder;
         elements['file-input'].disabled = loading;
 
         gameModeInputs.forEach((input) => {
             input.checked = input.value === game.mode;
             input.disabled = loading;
         });
-        elements['game-mode-hint'].textContent = I18n.translate(session.language,
+        elements['game-mode-hint'].textContent = I18n.translate(session.preferences.language,
             `game-mode.${game.mode}-hint`);
 
         elements['grid-settings'].hidden = effectMode;
@@ -209,7 +215,7 @@
             input.checked = input.value === game.grid.mode;
             input.disabled = loading;
         });
-        elements['grid-mode-hint'].textContent = I18n.translate(session.language,
+        elements['grid-mode-hint'].textContent = I18n.translate(session.preferences.language,
             `grid-mode.${game.grid.mode}-hint`);
         elements['effect-settings'].hidden = !effectMode;
         elements['effect'].value = game.effect.type;
@@ -219,11 +225,11 @@
         elements['effect-steps-text'].textContent = String(game.effect.steps);
 
         elements['automatic-settings'].hidden = !automatic;
-        elements['interval-name'].textContent = I18n.translate(session.language,
+        elements['interval-name'].textContent = I18n.translate(session.preferences.language,
             effectMode ? 'interval.step' : 'interval.tile');
         elements['interval'].value = game.intervalSeconds;
         elements['interval'].disabled = loading;
-        elements['interval-text'].textContent = I18n.translate(session.language,
+        elements['interval-text'].textContent = I18n.translate(session.preferences.language,
             game.intervalSeconds === 1 ? 'interval.one' : 'interval.other',
             {count: game.intervalSeconds});
     }
@@ -286,20 +292,20 @@
         elements['image-navigation'].hidden = noImage || session.selection.images.length <= 1;
         elements['previous-button'].disabled = loading || noImage || session.selection.images.length <= 1;
         elements['next-button'].disabled = loading || noImage || session.selection.images.length <= 1;
-        elements['image-position'].textContent = I18n.translate(session.language, 'image.position',
+        elements['image-position'].textContent = I18n.translate(session.preferences.language, 'image.position',
             {index: session.selection.index + 1, total: session.selection.images.length});
 
         elements['progress-toggle'].hidden = noImage;
-        elements['progress-toggle'].title = I18n.translate(session.language, 'progress-toggle.title');
-        elements['progress-toggle'].textContent = session.progressAsPercent
-            ? new Intl.NumberFormat(session.language,
+        elements['progress-toggle'].title = I18n.translate(session.preferences.language, 'progress-toggle.title');
+        elements['progress-toggle'].textContent = session.preferences.progressAsPercent
+            ? new Intl.NumberFormat(session.preferences.language,
                 {style: 'percent', maximumFractionDigits: 0})
                 .format(Math.min(completedCount / total, completed ? 1 : 0.99))
             : `${completedCount}/${total}`;
 
         elements['play-button'].hidden = !GameEngine.isAutomatic(game);
         elements['play-button'].disabled = loading || noImage || completed;
-        elements['play-button'].textContent = I18n.translate(session.language,
+        elements['play-button'].textContent = I18n.translate(session.preferences.language,
             GameEngine.isAutoRunning(game) ? 'button.pause' : 'button.start');
 
         elements['reveal-button'].disabled = loading || noImage || completed;
@@ -319,7 +325,7 @@
         const previousNotification = previousSession.notification ?? previousSession.game.notification;
 
         elements['message'].textContent = notification
-            ? I18n.translate(currentSession.language, notification.key)
+            ? I18n.translate(currentSession.preferences.language, notification.key)
             : '';
 
         if (notification?.key === previousNotification?.key &&
@@ -378,7 +384,7 @@
     }
 
     /**
-     * Loads selected files in order, reading pixels only for the first image.
+     * Sorts or shuffles selected files on import, reading pixels only for the first image.
      * Keeps the current images on failure and releases their URLs after a successful import.
      * @param {File[]} files - Selected files.
      * @returns {Promise<void>} Resolves after loading or reporting an error;
@@ -391,6 +397,17 @@
         updateSession((currentSession) => Session.beginUpload(currentSession, files));
         if (session.upload !== Session.UploadState.LOADING) {
             return;
+        }
+
+        files = [...files];
+        if (session.preferences.randomImportOrder) {
+            for (let index = files.length - 1; index > 0; index--) {
+                const other = Math.floor(Math.random() * (index + 1));
+                [files[index], files[other]] = [files[other], files[index]];
+            }
+        } else {
+            const collator = new Intl.Collator(session.preferences.language, {numeric: true, sensitivity: 'base'});
+            files.sort((left, right) => collator.compare(left.name, right.name));
         }
 
         const urls = [];
@@ -492,7 +509,7 @@
     }
 
     /**
-     * Registers theme, language, and progress format handlers.
+     * Registers theme, language, import order, and progress format handlers.
      * @returns {void}
      */
     function initializePreferenceListeners() {
@@ -508,6 +525,8 @@
                     Session.changeLanguage(currentSession, input.value));
             });
         });
+        elements['import-order-toggle'].addEventListener('click', () =>
+            updateSession(Session.toggleImportOrder));
         elements['progress-toggle'].addEventListener('click', () =>
             updateSession(Session.toggleProgressFormat));
     }
@@ -609,7 +628,7 @@
     initializeFileListeners();
     initializeGameSettingListeners();
     initializeGameActionListeners();
-    renderLanguage(session.language);
+    renderLanguage(session.preferences.language);
     buildBoard(session.game);
     render(session, session);
 })();
