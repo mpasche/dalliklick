@@ -2,7 +2,7 @@
     "id": "./",
     "name": "DalliKlick",
     "short_name": "DalliKlick",
-    "description": "Reveal your own images",
+    "description": "Turn your own images into an interactive guessing game.",
     "lang": "en",
     "start_url": "./",
     "scope": "./",
